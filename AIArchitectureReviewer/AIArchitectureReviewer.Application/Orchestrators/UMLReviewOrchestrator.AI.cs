@@ -51,14 +51,14 @@ namespace AIArchitectureReviewer.Application.Orchestrators
                 $"Cấu trúc JSON gốc:\n{jsonDiagram}\n\nCác lỗi kiến trúc:\n{reviewText}\n\nHãy sửa lỗi và xuất ra Mermaid code.");
         }
 
-        public async Task<JsonNode?> CheckConsistencyAsync(List<JsonNode> diagrams)
-        {
-            var diagramsJson = string.Join("\n\n---\n\n", diagrams);
-            var consistencyText = await _ragService.GenerateContentAsync(
-                SystemPrompts.ConsistencyCheckPrompt,
-                $"Vui lòng kiểm tra tính nhất quán của các sơ đồ sau:\n{diagramsJson}");
+        // public async Task<JsonNode?> CheckConsistencyAsync(List<JsonNode> diagrams)
+        // {
+        //     var diagramsJson = string.Join("\n\n---\n\n", diagrams);
+        //     var consistencyText = await _ragService.GenerateContentAsync(
+        //         SystemPrompts.ConsistencyCheckPrompt,
+        //         $"Vui lòng kiểm tra tính nhất quán của các sơ đồ sau:\n{diagramsJson}");
 
-            return SafeJsonParse(JsonSerializerSafe(new { ConsistencyReport = consistencyText }));
-        }
+        //     return SafeJsonParse(JsonSerializerSafe(new { ConsistencyReport = consistencyText }));
+        // }
     }
 }

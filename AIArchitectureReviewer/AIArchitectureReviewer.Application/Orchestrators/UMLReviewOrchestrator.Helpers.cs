@@ -9,14 +9,14 @@ namespace AIArchitectureReviewer.Application.Orchestrators
         {
             if (string.IsNullOrWhiteSpace(aiResponse)) return "{}";
             var text = aiResponse.Trim();
-            
+
             // Try to extract content between ```json and ```
             var match = System.Text.RegularExpressions.Regex.Match(text, @"```(?:json)?\s*(.*?)\s*```", System.Text.RegularExpressions.RegexOptions.Singleline);
             if (match.Success)
             {
                 text = match.Groups[1].Value.Trim();
             }
-            
+
             // Fallback: manually find first '{' and last '}'
             int firstBrace = text.IndexOf('{');
             int lastBrace = text.LastIndexOf('}');
@@ -24,7 +24,7 @@ namespace AIArchitectureReviewer.Application.Orchestrators
             {
                 text = text.Substring(firstBrace, lastBrace - firstBrace + 1);
             }
-            
+
             return text;
         }
 
@@ -44,15 +44,6 @@ namespace AIArchitectureReviewer.Application.Orchestrators
         private string JsonSerializerSafe(object obj)
         {
             return System.Text.Json.JsonSerializer.Serialize(obj);
-        }
-
-        private Guid ComputeHashBytes(byte[] inputBytes)
-        {
-            using (var md5 = System.Security.Cryptography.MD5.Create())
-            {
-                byte[] hashBytes = md5.ComputeHash(inputBytes);
-                return new Guid(hashBytes);
-            }
         }
     }
 }

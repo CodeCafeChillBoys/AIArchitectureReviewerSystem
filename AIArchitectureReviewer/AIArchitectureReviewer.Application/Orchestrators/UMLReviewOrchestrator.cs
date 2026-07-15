@@ -52,9 +52,27 @@ namespace AIArchitectureReviewer.Application.Orchestrators
             // 3. Auto-Refactoring (Separate Request to avoid long output truncation)
             var refactorText = await ExecuteAutoRefactoringAsync(cleanJson, reviewText);
 
-            // 4. Calculate Score Programmatically (Rule-based on 10-point scale)
-            var (calculatedScore, scoreDetails, calculatedScoreJson) = CalculateScoreProgrammatically(parsedDiagram);
-            float totalScore = calculatedScore;
+            // 4. Parse AI Score or fallback to programmatic score
+            float totalScore = 10f;
+            JsonNode? scoreJson = null;
+
+            var aiScoreNode = parsedReviewAndScore?["Score"] ?? parsedReviewAndScore?["score"];
+            if (aiScoreNode != null)
+            {
+                var totalScoreNode = aiScoreNode["total_score"] ?? aiScoreNode["TotalScore"] ?? aiScoreNode["score"] ?? aiScoreNode["totalScore"];
+                if (totalScoreNode != null && float.TryParse(totalScoreNode.ToString(), out float parsedScore))
+                {
+                    totalScore = parsedScore;
+                    scoreJson = aiScoreNode;
+                }
+            }
+
+            if (scoreJson == null)
+            {
+                var (calculatedScore, scoreDetails, calculatedScoreJson) = CalculateScoreProgrammatically(parsedDiagram);
+                totalScore = calculatedScore;
+                scoreJson = calculatedScoreJson;
+            }
 
             var diagramType = parsedDiagram?["diagram_type"]?.ToString();
 
@@ -82,7 +100,7 @@ namespace AIArchitectureReviewer.Application.Orchestrators
                 SessionId = sessionId,
                 Diagram = parsedDiagram,
                 Review = SafeJsonParse(JsonSerializerSafe(new { ReviewDetails = reviewText, RefactoredMermaid = refactorText })),
-                Score = calculatedScoreJson
+                Score = scoreJson
             };
         }
 
