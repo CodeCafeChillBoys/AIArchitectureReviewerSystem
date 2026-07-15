@@ -1,0 +1,6 @@
+@DiagramManager.API_HostAddress = http://localhost:5155
+
+GET {{DiagramManager.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

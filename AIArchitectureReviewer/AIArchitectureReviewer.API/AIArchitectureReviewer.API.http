@@ -1,0 +1,6 @@
+@AIArchitectureReviewer.API_HostAddress = http://localhost:5216
+
+GET {{AIArchitectureReviewer.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
