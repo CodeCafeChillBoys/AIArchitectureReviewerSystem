@@ -59,6 +59,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Services
 builder.Services.AddScoped<ISystemRuleService, SystemRuleService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<ICodeExtractorService, AIArchitectureReviewer.Infrastructure.Services.CodeExtractorService>();
 
 
 builder.Services.AddCors(options =>

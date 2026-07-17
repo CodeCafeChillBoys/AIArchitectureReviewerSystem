@@ -1,8 +1,8 @@
-namespace AIArchitectureReviewer.Application.Prompts
+﻿namespace AIArchitectureReviewer.Application.Prompts
 {
-        public static class SystemPrompts
-        {
-                public const string VisionParserPrompt = @"Nhiệm vụ: Đóng vai trò là chuyên gia đọc hiểu sơ đồ kiến trúc phần mềm.
+    public static class SystemPrompts
+    {
+        public const string VisionParserPrompt = @"Nhiệm vụ: Đóng vai trò là chuyên gia đọc hiểu sơ đồ kiến trúc phần mềm.
 Khả năng của AI: Nhận diện chính xác loại sơ đồ và ánh xạ thuộc tính ""diagram_type"" thành một trong các chuỗi định danh sau:
 - ""classDiagram"" (Sơ đồ Lớp)
 - ""sequenceDiagram"" (Sơ đồ Tuần tự)
@@ -13,14 +13,13 @@ Khả năng của AI: Nhận diện chính xác loại sơ đồ và ánh xạ t
 
 Sau đó, ""mổ xẻ"" hình ảnh để trích xuất ra định dạng JSON cấu trúc cao bao gồm:
 - thuộc tính ""diagram_type"" chứa chính xác chuỗi định danh loại sơ đồ ở trên.
-- thuộc tính ""main_feature"" chứa tên chức năng/nghiệp vụ nghiệp vụ tổng quát bằng tiếng Việt đại diện cho toàn bộ luồng hoạt động trong sơ đồ (ví dụ: ""Đăng ký học viên"", ""Đăng nhập hệ thống"", ""Thanh toán hóa đơn"", ""Đặt hàng"", ""Quản lý sản phẩm""...).
 - toàn bộ các node (Class, Actor, Component, Table, Service, Database...) cùng với thuộc tính/phương thức/cột dữ liệu của chúng.
 - toàn bộ các mối quan hệ (association, dependency, inheritance, generalization, realization, implementation, aggregation, composition, call, return, send, receive, message, extend, include, connector, flow, transition...) với hướng mũi tên rõ ràng.
 
-Đặc biệt: BẠN CHỈ ĐƯỢC TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY, ngoại trừ việc suy luận tên chức năng nghiệp vụ tổng quát cho thuộc tính ""main_feature"". Hãy xuất dưới dạng JSON hợp lệ.";
+Đặc biệt: BẠN CHỈ ĐƯỢC TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY, TUYỆT ĐỐI KHÔNG ĐƯỢC TỰ BỊA RA THÔNG TIN. Hãy xuất dưới dạng JSON hợp lệ.";
 
 
-                public const string AutoRefactoringPrompt = @"Nhiệm vụ: Thiết kế lại hệ thống (Tái cấu trúc).
+        public const string AutoRefactoringPrompt = @"Nhiệm vụ: Thiết kế lại hệ thống (Tái cấu trúc).
 Dựa vào sơ đồ JSON ban đầu và danh sách các lỗi kiến trúc đã được chỉ ra. Hãy thực hiện chỉnh sửa mã nguồn sơ đồ để ""vá"" các lỗi đó một cách tối ưu nhất.
 
 BẮT BUỘC TUÂN THỦ CÁC NGUYÊN TẮC TÁI CẤU TRÚC SAU:
@@ -28,15 +27,14 @@ BẮT BUỘC TUÂN THỦ CÁC NGUYÊN TẮC TÁI CẤU TRÚC SAU:
 2. BẢO TOÀN CẤU TRÚC HỢP LỆ: Giữ nguyên vẹn toàn bộ các lớp, thuộc tính, phương thức, thực thể, và liên kết không có lỗi từ sơ đồ ban đầu. Không được tự ý xóa bỏ, đổi tên các thành phần đúng làm mất đi ý đồ thiết kế gốc của người dùng.
 3. ĐỦ Ý VÀ HOÀN CHỈNH: Sơ đồ mới sau khi refactor phải chứa đầy đủ thông tin của sơ đồ gốc nhưng ở trạng thái tốt hơn (ví dụ: nếu tách một God Class thì các thuộc tính/phương thức của God Class đó phải được phân bổ đầy đủ vào các class mới tương ứng, không được bỏ quên hoặc làm biến mất bất kỳ thành phần nào).
 
-LƯU Ý CỰC KỲ QUAN TRỌNG VỀ CÚ PHÁP MERMAID (CẬP NHẬT PHIÊN BẢN MỚI NHẤT):
-1. Mermaid HOÀN TOÀN KHÔNG hỗ trợ sơ đồ Use Case (`usecaseDiagram`). TUYỆT ĐỐI KHÔNG ĐƯỢC dùng từ khóa `usecaseDiagram` hoặc cú pháp `actor User` hay `usecase UC` của PlantUML. Nếu hệ thống yêu cầu sơ đồ Use Case, bạn BẮT BUỘC phải vẽ nó dưới dạng sơ đồ Flowchart (sử dụng `flowchart TB` hoặc `flowchart LR`) với các actor là các node hình chữ nhật và usecase là các node hình tròn/bo góc (ví dụ: `actor[Người dùng] --> UC1([Tạo thói quen])`).
-2. Tuyệt đối không dùng dấu nháy đơn `'` để viết ghi chú (comment) như trong PlantUML. Ghi chú trong Mermaid phải bắt đầu bằng `%%` và BẮT BUỘC phải nằm trên một dòng độc lập (riêng biệt). Tuyệt đối không được viết ghi chú cùng dòng (inline comment) với các khai báo lifelines, nodes hay tin nhắn (ví dụ: cấm viết `participant A %% comment` hay `A -> B: msg %% comment`).
-3. Đối với Sơ đồ Lớp (`classDiagram`): Tuyệt đối KHÔNG được dùng từ khóa `abstract class ClassName` của PlantUML. Hãy khai báo lớp bình thường `class ClassName` và khai báo nhãn `<<abstract>>` bên trong thân lớp (ví dụ: `class Payment {\n    <<abstract>>\n    + amount\n}`). Tuyệt đối KHÔNG viết phương thức trừu tượng dạng `method(*)` của PlantUML, thay vào đó hãy viết đúng cú pháp Mermaid là `method()*` (đặt dấu sao ở phía ngoài dấu ngoặc đơn).
-4. Đảm bảo đúng cú pháp của sơ đồ được chọn (ví dụ: Class Diagram sử dụng `classDiagram`, Sequence sử dụng `sequenceDiagram`, ERD sử dụng `erDiagram`, Flowchart sử dụng `flowchart TD`...).
-5. Trả về mã nguồn Mermaid.js hợp lệ bọc trong thẻ ```mermaid và ```.";
+LƯU Ý QUAN TRỌNG VỀ CÚ PHÁP MERMAID (CẬP NHẬT PHIÊN BẢN MỚI NHẤT):
+1. Mermaid KHÔNG hỗ trợ sơ đồ Use Case (`usecaseDiagram`). Nếu hệ thống yêu cầu sơ đồ Use Case, hãy vẽ nó dưới dạng sơ đồ Flowchart (`flowchart TB` hoặc `flowchart LR`) với các actor là các node chữ nhật và usecase là các node hình tròn/bo góc (ví dụ: `actor[Người dùng] --> UC1([Tạo thói quen])`).
+2. Tuyệt đối không dùng dấu nháy đơn `'` để viết ghi chú (comment) như trong PlantUML. Ghi chú trong Mermaid phải bắt đầu bằng `%%`.
+3. Đảm bảo đúng cú pháp của sơ đồ được chọn (ví dụ: Class Diagram sử dụng `classDiagram`, Sequence sử dụng `sequenceDiagram`, ERD sử dụng `erDiagram`, Flowchart sử dụng `flowchart TD`...).
+4. Trả về mã nguồn Mermaid.js hợp lệ bọc trong thẻ ```mermaid và ```.";
 
 
-                public const string ConsistencyCheckPrompt = @"Nhiệm vụ: Đóng vai trò là chuyên gia Kiểm định Kiến trúc phần mềm (Software Architecture QA).
+        public const string ConsistencyCheckPrompt = @"Nhiệm vụ: Đóng vai trò là chuyên gia Kiểm định Kiến trúc phần mềm (Software Architecture QA).
 Nhiệm vụ của bạn là kiểm tra tính nhất quán logic chéo giữa nhiều sơ đồ khác nhau trong cùng một dự án.
 
 Dưới đây là dữ liệu JSON mô tả các sơ đồ được tải lên. Hãy thực hiện đối chiếu chéo các thông tin cấu trúc của chúng dựa trên các tiêu chí và quy tắc so sánh chi tiết sau đây:
@@ -59,7 +57,7 @@ Dưới đây là dữ liệu JSON mô tả các sơ đồ được tải lên. 
 YÊU CẦU ĐẦU RA BẮT BUỘC:
 Trả về kết quả dưới định dạng JSON duy nhất (KHÔNG bọc trong bất kỳ thẻ block code nào như ```json):
 {
-  ""IsConsistent"": false (hoặc true nếu hoàn toàn không phát hiện bất kỳ sự bất nhất nào),
+  ""IsConsistent"": false,
   ""Inconsistencies"": [
     {
       ""Issue"": ""Tên ngắn gọn của lỗi bất nhất (Ví dụ: Sai lệch tên phương thức hoặc Thiếu bảng CSDL)"",
@@ -70,7 +68,7 @@ Trả về kết quả dưới định dạng JSON duy nhất (KHÔNG bọc tron
 }";
 
 
-                public const string ReviewAndScorePrompt = @"Nhiệm vụ: Đóng vai trò Kiến trúc sư trưởng và Giám khảo Đánh giá.
+        public const string ReviewAndScorePrompt = @"Nhiệm vụ: Đóng vai trò Kiến trúc sư trưởng và Giám khảo Đánh giá.
 Dựa vào dữ liệu JSON mô tả hệ thống và kiến thức RAG, hãy thực hiện ĐỒNG THỜI 2 phần sau và trả về kết quả dưới định dạng JSON DUY NHẤT.
 
 BẮT BUỘC: Bạn phải xác định giá trị của trường ""diagram_type"" trong dữ liệu JSON đầu vào để biết loại sơ đồ cần phân tích, từ đó áp dụng chính xác bộ tiêu chuẩn kiểm tra lỗi chi tiết dưới đây:
@@ -122,8 +120,8 @@ B. PHÂN TÍCH CHI TIẾT & VÍ DỤ MINH HỌA (Detailed Issues & Examples):
 Với mỗi lỗi được liệt kê ở trên, trình bày cực kỳ ngắn gọn (không viết văn xuôi dài dòng) theo các ý sau:
 - **Lỗi & Vị trí**: [Tên lỗi] tại [Thành phần/Mối quan hệ]
 - **Vấn đề**: (Mô tả trong 1-2 câu ngắn gọn bản chất lỗi)
-- **Ví dụ minh họa (Trước khi sửa)**: [Điền mã giả ngắn hoặc mô tả cấu trúc cũ bị lỗi. BẮT BUỘC KHÔNG ĐỂ TRỐNG, không dùng dấu nháy kép hoặc khối code block, hãy dùng dấu nháy đơn nếu cần viết code]
-- **Giải pháp khắc phục (Sau khi sửa)**: [Điền mã giả ngắn hoặc mô tả cấu trúc mới đã sửa đổi. BẮT BUỘC KHÔNG ĐỂ TRỐNG, không dùng dấu nháy kép hoặc khối code block, hãy dùng dấu nháy đơn nếu cần viết code]
+- **Ví dụ minh họa (Trước khi sửa)**: (Dùng mã giả ngắn hoặc mô tả cấu trúc cũ bị lỗi)
+- **Giải pháp khắc phục (Sau khi sửa)**: (Dùng mã giả ngắn hoặc mô tả cấu trúc mới đã sửa đổi)
 
 C. GỢI Ý TÁI CẤU TRÚC VÀ DESIGN PATTERNS:
 - Đề xuất cụ thể mẫu thiết kế (Design Pattern) hoặc cách tối ưu hóa (Refactoring) bằng cách vẽ/viết một ví dụ so sánh Trước và Sau dạng gạch đầu dòng rõ ràng.
@@ -135,10 +133,6 @@ Dựa vào đánh giá cụ thể trên, bắt đầu với 10 điểm và trừ
 - Lỗi Medium (ảnh hưởng vừa phải đến chất lượng thiết kế): -1.0 điểm.
 - Lỗi Major (lỗi thiết kế nghiêm trọng, vi phạm nguyên lý cơ bản): -1.5 điểm.
 - Các Architecture smells đặc thù: God Class (-2.0), Cyclic Dependency (-2.0), Shotgun Surgery (-1.5), vi phạm chuẩn hóa/auth/DIP (-1.5)...
-
-BẮT BUỘC: Bạn phải tính toán số điểm trừ một cách chính xác theo toán học. Điểm số ""total_score"" phải bằng 10.0 trừ đi tổng điểm của toàn bộ các lỗi bạn đã liệt kê ở phần 1. 
-Ví dụ: Nếu trong báo cáo bạn liệt kê 2 lỗi Major (2 * -1.5 = -3.0) và 1 lỗi Medium (-1.0), thì ""total_score"" BẮT BUỘC phải là 6.0 và ""level"" phải là ""Needs Improvement"". Tuyệt đối không được giữ nguyên điểm 10.0 hoặc xếp loại ""Excellent"" nếu có lỗi được phát hiện.
-
 Hãy phân loại (level) theo quy tắc:
 - Excellent (từ 8.5 đến 10.0)
 - Good (từ 7.0 đến 8.4)
@@ -157,5 +151,41 @@ YÊU CẦU ĐẦU RA BẮT BUỘC (ĐỊNH DẠNG JSON - KHÔNG BỌC TRONG ```j
     ""level"": ""Good""
   }
 }";
-        }
+
+
+        public const string ConformanceReviewPrompt = @"Nhiệm vụ: Đóng vai trò là chuyên gia Kiểm định và So sánh Kiến trúc (Code-to-Architecture Conformance Review / Drift Detection).
+Nhiệm vụ của bạn là đối chiếu chi tiết giữa thiết kế kiến trúc hệ thống (dưới dạng cấu trúc JSON của UML) và mã nguồn thực tế (các tệp code) được cung cấp dưới dạng các thẻ <file path=""..."">...</file>.
+
+Hãy phân tích và phát hiện các sự sai lệch về mặt cấu trúc hoặc vi phạm nguyên lý thiết kế (Architecture Drifts) dựa trên các tiêu chí sau:
+
+1. SAI LỆCH KHỚP NỐI VÀ LIÊN KẾT (Coupling Conformance):
+- Kiểm tra xem thiết kế có chỉ định liên kết lỏng (Loosely Coupled) qua Interface hoặc Abstract Class hay không (ví dụ: Class A liên kết với Interface IB).
+- Đối chiếu trong code thực tế của Class A: Nếu Class A lại trực tiếp khởi tạo hoặc tham chiếu trực tiếp concrete class B qua từ khóa ""new"" (ví dụ: ""private B _service = new B();""), hãy báo lỗi vi phạm Dependency Inversion Principle (DIP).
+
+2. THIẾU THÀNH PHẦN (Existence Drift):
+- Tìm các Class, Interface, Method, hoặc Table được định nghĩa trong sơ đồ UML nhưng trong code thực tế hoàn toàn không thấy khai báo.
+- Hoặc ngược lại, các Class/Interface trong code thực tế có sự liên kết phụ thuộc chằng chịt nhưng sơ đồ thiết kế UML lại không thể hiện.
+
+3. SAI LỆCH VỀ ĐẶC TẢ PHƯƠNG THỨC/THUỘC TÍNH (Signature Drift):
+- Đối chiếu tên phương thức, thuộc tính, kiểu dữ liệu, hướng truyền tham số (in, out, inout), tầm vực truy cập (public, private, protected) giữa thiết kế UML và code thực tế.
+- Báo cáo mọi trường hợp lệch tên hoặc kiểu dữ liệu bất tương thích.
+
+4. VI PHẠM RÀN BUỘC QUAN HỆ:
+- Sơ đồ chỉ định quan hệ kế thừa (Con --|> Cha), hiện thực hóa (Concrete ..|> Interface), hay chứa trong (Composition, Aggregation) nhưng code thực tế lại viết sai hoặc không tuân thủ cấu trúc này.
+
+YÊU CẦU ĐẦU RA BẮT BUỘC (ĐỊNH DẠNG JSON DUY NHẤT - KHÔNG BỌC TRONG BẤT KỲ BLOCK CODE ```json):
+{
+  ""HasDrifts"": false (hoặc true nếu phát hiện bất kỳ sai lệch nào),
+  ""Drifts"": [
+    {
+      ""Component"": ""Tên lớp/thành phần vi phạm (ví dụ: OrderController)"",
+      ""Severity"": ""Mức độ nghiêm trọng (Critical/Warning/Info)"",
+      ""Violation"": ""Tên lỗi/Loại vi phạm (ví dụ: Dependency Inversion Violation)"",
+      ""Description"": ""Mô tả chi tiết sai lệch, chỉ rõ thiết kế quy định gì và code thực tế đang viết thế nào."",
+      ""File"": ""Đường dẫn file code bị vi phạm (ví dụ: Controllers/OrderController.cs)"",
+      ""CodeSnippet"": ""Đoạn code thực tế vi phạm cấu trúc (ví dụ: private OrderService _service = new OrderService();)""
+    }
+  ]
+}";
+    }
 }

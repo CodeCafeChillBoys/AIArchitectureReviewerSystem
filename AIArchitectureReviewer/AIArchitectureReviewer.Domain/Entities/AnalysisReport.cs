@@ -10,6 +10,7 @@ namespace AIArchitectureReviewer.Domain.Entities
         public string DiagramType { get; set; } = string.Empty;
         public string RawAiResponse { get; set; } = string.Empty;
         public string MarkdownReport { get; set; } = string.Empty;
+        public string ParsedDiagram { get; set; } = string.Empty;
         public float TotalScore { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

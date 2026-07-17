@@ -201,6 +201,30 @@ namespace AIArchitectureReviewer.API.Controllers
                 return StatusCode(500, $"Internal server error renaming report: {ex.Message}");
             }
         }
+
+        [HttpPost("{reportId}/conformance")]
+        public async Task<IActionResult> ConformanceReview(System.Guid reportId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            try
+            {
+                using (var stream = file.OpenReadStream())
+                {
+                    var result = await _orchestrator.ConformanceReviewAsync(reportId, stream, file.FileName);
+                    return Ok(result);
+                }
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error during conformance review: {ex.Message}");
+            }
+        }
     }
 
     public class RenameRequestDto
