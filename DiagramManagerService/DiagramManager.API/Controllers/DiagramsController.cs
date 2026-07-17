@@ -119,12 +119,17 @@ namespace DiagramManager.API.Controllers
         }
 
         [HttpPost("{id}/versions")]
-        public async Task<IActionResult> UploadNewVersion(Guid id, IFormFile file)
+        public async Task<IActionResult> UploadNewVersion(Guid id, [FromForm] string description, IFormFile file)
         {
             if (file == null || file.Length == 0) return BadRequest("File is empty");
 
             var diagram = await _context.Diagrams.Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == id);
             if (diagram == null) return NotFound("Diagram not found");
+
+            if (!string.IsNullOrEmpty(description))
+            {
+                diagram.Description = description;
+            }
 
             // Save File
             string storageUrl = await _storageService.SaveFileAsync(file, diagram.WorkspaceId.ToString());
@@ -155,6 +160,14 @@ namespace DiagramManager.API.Controllers
             await _publishEndpoint.Publish(new DiagramUploadedEvent(diagram.Id, version.Id, version.StorageUrl, fileBytes));
 
             return Ok(new { DiagramId = diagram.Id, VersionId = version.Id, VersionNumber = nextVersionNumber, StorageUrl = storageUrl });
+        }
+
+        [HttpGet("version/{versionId}")]
+        public async Task<IActionResult> GetVersion(Guid versionId)
+        {
+            var version = await _context.DiagramVersions.FirstOrDefaultAsync(v => v.Id == versionId);
+            if (version == null) return NotFound("Version not found");
+            return Ok(version);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace AIArchitectureReviewer.Infrastructure.Data
         public DbSet<AnalysisReport> AnalysisReports { get; set; } = null!;
         public DbSet<ChatSession> ChatSessions { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<ConsistencyReport> ConsistencyReports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,7 @@ namespace AIArchitectureReviewer.Infrastructure.Data
             modelBuilder.Entity<AnalysisReport>().ToTable("ANALYSIS_REPORTS");
             modelBuilder.Entity<ChatSession>().ToTable("CHAT_SESSIONS");
             modelBuilder.Entity<ChatMessage>().ToTable("CHAT_MESSAGES");
+            modelBuilder.Entity<ConsistencyReport>().ToTable("CONSISTENCY_REPORTS");
 
             // ChatMessage -> ChatSession (Many-to-One)
             modelBuilder.Entity<ChatMessage>()

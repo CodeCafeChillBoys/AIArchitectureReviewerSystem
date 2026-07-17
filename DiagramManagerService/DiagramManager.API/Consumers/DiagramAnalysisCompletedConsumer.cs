@@ -36,6 +36,7 @@ namespace DiagramManager.API.Consumers
 
                 diagramVersion.AiScore = evt.Score;
                 diagramVersion.AiReview = evt.ReviewData;
+                diagramVersion.DiagramType = evt.DiagramType;
                 diagramVersion.Status = "Analyzed";
 
                 await _dbContext.SaveChangesAsync();

@@ -1,9 +1,5 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using AIArchitectureReviewer.Application.Interfaces.Orchestrators;
 using MassTransit;
-using Microsoft.Extensions.Logging;
 using Shared.Messaging.Events;
 
 namespace AIArchitectureReviewer.API.Consumers
@@ -29,13 +25,13 @@ namespace AIArchitectureReviewer.API.Consumers
             try
             {
                 byte[] fileBytes = evt.FileData;
-                
+
                 if (fileBytes == null || fileBytes.Length == 0)
                 {
                     _logger.LogWarning($"FileData is empty for DiagramId: {evt.DiagramId}");
                     return;
                 }
-                
+
                 string mimeType = "application/xml";
                 var lowerUrl = evt.FileUrl.ToLower();
                 if (lowerUrl.EndsWith(".json")) mimeType = "application/json";
@@ -69,8 +65,8 @@ namespace AIArchitectureReviewer.API.Consumers
                     evt.DiagramId,
                     evt.VersionId,
                     scoreValue,
-                    System.Text.Json.JsonSerializer.Serialize(result, jsonOptions)
-                ));
+                    System.Text.Json.JsonSerializer.Serialize(result, jsonOptions),
+                    result.Diagram?["diagram_type"]?.ToString() ?? ""));
 
                 _logger.LogInformation($"Published DiagramAnalysisCompletedEvent for DiagramId: {evt.DiagramId}");
             }

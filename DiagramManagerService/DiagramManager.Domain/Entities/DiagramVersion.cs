@@ -13,6 +13,7 @@ namespace DiagramManager.Domain.Entities
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
         public float? AiScore { get; set; }
         public string? AiReview { get; set; }
+        public string? DiagramType { get; set; }
         public Diagram? Diagram { get; set; }
     }
 }

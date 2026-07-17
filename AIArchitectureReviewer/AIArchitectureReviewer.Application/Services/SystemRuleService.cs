@@ -111,5 +111,16 @@ namespace AIArchitectureReviewer.Application.Services
                 await _unitOfWork.CompleteAsync();
             }
         }
+
+        public async Task ClearAllRulesAsync()
+        {
+            var chunks = await _unitOfWork.RuleChunks.GetAllAsync();
+            _unitOfWork.RuleChunks.RemoveRange(chunks);
+
+            var rules = await _unitOfWork.SystemRules.GetAllAsync();
+            _unitOfWork.SystemRules.RemoveRange(rules);
+
+            await _unitOfWork.CompleteAsync();
+        }
     }
 }

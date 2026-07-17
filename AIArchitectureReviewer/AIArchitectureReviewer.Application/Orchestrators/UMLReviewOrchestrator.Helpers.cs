@@ -10,14 +10,7 @@ namespace AIArchitectureReviewer.Application.Orchestrators
             if (string.IsNullOrWhiteSpace(aiResponse)) return "{}";
             var text = aiResponse.Trim();
 
-            // Try to extract content between ```json and ```
-            var match = System.Text.RegularExpressions.Regex.Match(text, @"```(?:json)?\s*(.*?)\s*```", System.Text.RegularExpressions.RegexOptions.Singleline);
-            if (match.Success)
-            {
-                text = match.Groups[1].Value.Trim();
-            }
-
-            // Fallback: manually find first '{' and last '}'
+            // Find the outermost '{' and '}' to extract valid JSON
             int firstBrace = text.IndexOf('{');
             int lastBrace = text.LastIndexOf('}');
             if (firstBrace >= 0 && lastBrace >= firstBrace)

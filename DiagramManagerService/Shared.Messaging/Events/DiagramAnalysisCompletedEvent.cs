@@ -6,5 +6,6 @@ namespace Shared.Messaging.Events
         Guid DiagramId, 
         Guid VersionId, 
         float Score, 
-        string ReviewData);
+        string ReviewData,
+        string DiagramType = "");
 }

@@ -69,6 +69,19 @@ Tuyệt đối KHÔNG sử dụng kiến thức bên ngoài. Nếu thông tin kh
             return textElement.GetString() ?? string.Empty;
         }
 
+        public async Task<string> GetRawContextAsync(string question, int contextTopK = 5)
+        {
+            var searchResults = await _hybridSearchService.SearchHybridAsync(question, contextTopK);
+            
+            var contextBuilder = new StringBuilder();
+            foreach (var result in searchResults)
+            {
+                contextBuilder.AppendLine($"- {result.Content}");
+            }
+            
+            return contextBuilder.ToString();
+        }
+
         public async Task<string> GenerateContentAsync(string systemPrompt, string userPrompt)
         {
             var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";

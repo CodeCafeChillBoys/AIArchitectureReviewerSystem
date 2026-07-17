@@ -12,5 +12,6 @@ namespace AIArchitectureReviewer.Application.Interfaces.Services
         Task<SystemRuleDto> CreateRuleAsync(CreateSystemRuleDto dto);
         Task UpdateRuleAsync(Guid id, UpdateSystemRuleDto dto);
         Task DeleteRuleAsync(Guid id);
+        Task ClearAllRulesAsync();
     }
 }

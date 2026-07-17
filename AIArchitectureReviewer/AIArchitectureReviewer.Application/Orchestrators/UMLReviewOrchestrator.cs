@@ -26,14 +26,14 @@ namespace AIArchitectureReviewer.Application.Orchestrators
             // Use the real VersionId passed from DiagramManagerService
             var diagramVersionId = versionId;
 
-            // Compute Report ID 
-            var reportId = diagramVersionId;
+            // Generate a unique Report ID (must NOT reuse diagramVersionId to avoid PK conflicts on re-analysis)
+            var reportId = Guid.NewGuid();
 
-            // Use ReportId as SessionId so chat history persists along with the architecture
-            var sessionId = reportId.ToString();
+            // Use VersionId as SessionId so chat history persists along with the architecture
+            var sessionId = diagramVersionId.ToString();
 
             // Fetch RAG Context based on the parsed diagram or a generic query
-            var ragContext = await _ragService.AnswerQuestionAsync("Tìm kiếm các quy tắc (system rules) và báo cáo lỗi liên quan đến kiến trúc này.", 3);
+            var ragContext = await _ragService.GetRawContextAsync("Tìm kiếm các quy tắc (system rules) và báo cáo lỗi liên quan đến kiến trúc này.", 3);
 
             // 2. Architecture Review & Scoring (Combined Request)
             var reviewAndScoreJsonString = await ExecuteReviewAndScoreAsync(cleanJson, ragContext, customPrompt);

@@ -66,13 +66,18 @@ namespace AIArchitectureReviewer.API.Controllers
         }
 
         [HttpPost("seed-from-directory")]
-        public async Task<IActionResult> SeedFromDirectory()
+        public async Task<IActionResult> SeedFromDirectory([FromQuery] bool clearExisting = false)
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "RAG_Documents");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
                 return Ok(new { Message = "Created RAG_Documents folder. Please add files and run again." });
+            }
+
+            if (clearExisting)
+            {
+                await _systemRuleService.ClearAllRulesAsync();
             }
 
             var files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
@@ -108,6 +113,20 @@ namespace AIArchitectureReviewer.API.Controllers
             }
 
             return Ok(new { Message = $"Successfully imported {count} documents as rules. Skipped {skipped} existing documents." });
+        }
+
+        [HttpDelete("clear-all")]
+        public async Task<IActionResult> ClearAll()
+        {
+            try
+            {
+                await _systemRuleService.ClearAllRulesAsync();
+                return Ok(new { Message = "Successfully cleared all existing rules and chunks from DB." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error while clearing rules: {ex.Message}");
+            }
         }
 
         [HttpPut("{id}")]
