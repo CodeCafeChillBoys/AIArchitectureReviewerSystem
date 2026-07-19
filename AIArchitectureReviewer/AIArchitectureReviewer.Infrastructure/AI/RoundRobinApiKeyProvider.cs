@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Configuration;
 
 namespace AIArchitectureReviewer.Infrastructure.AI
@@ -12,7 +11,7 @@ namespace AIArchitectureReviewer.Infrastructure.AI
         public RoundRobinApiKeyProvider(IConfiguration configuration)
         {
             _apiKeys = configuration.GetSection("Gemini:ApiKeys").Get<string[]>();
-            
+
             if (_apiKeys == null || _apiKeys.Length == 0)
             {
                 throw new Exception("No API keys found in configuration under Gemini:ApiKeys");
