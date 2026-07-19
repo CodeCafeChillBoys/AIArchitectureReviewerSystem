@@ -3,6 +3,7 @@ using System;
 using DiagramManager.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DiagramManager.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(WorkspaceDbContext))]
-    partial class WorkspaceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718070358_AddDocumentEntity")]
+    partial class AddDocumentEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,12 +128,6 @@ namespace DiagramManager.Infrastructure.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("ConsistencyReview")
-                        .HasColumnType("text");
-
-                    b.Property<float?>("ConsistencyScore")
-                        .HasColumnType("real");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -73,6 +73,20 @@ namespace AIArchitectureReviewer.API.Consumers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing DiagramUploadedEvent");
+                try
+                {
+                    await _publishEndpoint.Publish(new DiagramAnalysisCompletedEvent(
+                        evt.DiagramId,
+                        evt.VersionId,
+                        0,
+                        $"Lỗi phân tích sơ đồ: {ex.Message}",
+                        "Failed"
+                    ));
+                }
+                catch (Exception pubEx)
+                {
+                    _logger.LogError(pubEx, "Failed to publish DiagramAnalysisCompletedEvent for failed analysis");
+                }
             }
         }
     }

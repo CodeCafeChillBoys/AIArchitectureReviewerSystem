@@ -28,7 +28,7 @@ builder.Services.AddHttpClient<IRAGService, RAGService>();
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<AIArchitectureReviewer.API.Consumers.DiagramAnalysisConsumer>();
-    
+    x.AddConsumer<AIArchitectureReviewer.API.Consumers.DocumentConsistencyReviewRequestedConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", "/", h =>
@@ -40,6 +40,10 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint("diagram-analysis-queue", e =>
         {
             e.ConfigureConsumer<AIArchitectureReviewer.API.Consumers.DiagramAnalysisConsumer>(context);
+        });
+        cfg.ReceiveEndpoint("document-consistency-review-queue", e =>
+        {
+            e.ConfigureConsumer<AIArchitectureReviewer.API.Consumers.DocumentConsistencyReviewRequestedConsumer>(context);
         });
     });
 });

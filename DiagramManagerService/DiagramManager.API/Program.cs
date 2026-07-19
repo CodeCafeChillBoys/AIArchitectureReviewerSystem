@@ -2,8 +2,9 @@ using DiagramManager.Application.Interfaces;
 using DiagramManager.Infrastructure.Data;
 using DiagramManager.Infrastructure.Services;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
+using DiagramManager.Application.Services;
 using DiagramManager.API.GrpcClients;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ builder.Services.AddSwaggerGen();
 
 // File Storage
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<IDocumentExtractorService, DocumentExtractorService>();
 
 // Database
 builder.Services.AddDbContext<WorkspaceDbContext>(options =>
@@ -29,6 +31,7 @@ builder.Services.AddDbContext<WorkspaceDbContext>(options =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<DiagramManager.API.Consumers.DiagramAnalysisCompletedConsumer>();
+    x.AddConsumer<DiagramManager.API.Consumers.DocumentConsistencyReviewCompletedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -41,6 +44,11 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint("diagram-analysis-completed-queue", e =>
         {
             e.ConfigureConsumer<DiagramManager.API.Consumers.DiagramAnalysisCompletedConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("document-consistency-completed-queue", e =>
+        {
+            e.ConfigureConsumer<DiagramManager.API.Consumers.DocumentConsistencyReviewCompletedConsumer>(context);
         });
     });
 });

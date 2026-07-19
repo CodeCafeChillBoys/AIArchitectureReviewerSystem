@@ -11,5 +11,6 @@ namespace DiagramManager.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Diagram> Diagrams { get; set; } = new List<Diagram>();
+        public ICollection<Document> Documents { get; set; } = new List<Document>();
     }
 }

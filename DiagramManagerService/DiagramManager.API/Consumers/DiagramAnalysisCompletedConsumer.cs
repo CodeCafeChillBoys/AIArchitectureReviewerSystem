@@ -12,11 +12,12 @@ namespace DiagramManager.API.Consumers
     {
         private readonly WorkspaceDbContext _dbContext;
         private readonly ILogger<DiagramAnalysisCompletedConsumer> _logger;
-
-        public DiagramAnalysisCompletedConsumer(WorkspaceDbContext dbContext, ILogger<DiagramAnalysisCompletedConsumer> logger)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public DiagramAnalysisCompletedConsumer(WorkspaceDbContext dbContext, ILogger<DiagramAnalysisCompletedConsumer> logger, IPublishEndpoint publishEndpoint)
         {
             _dbContext = dbContext;
             _logger = logger;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task Consume(ConsumeContext<DiagramAnalysisCompletedEvent> context)
@@ -37,11 +38,47 @@ namespace DiagramManager.API.Consumers
                 diagramVersion.AiScore = evt.Score;
                 diagramVersion.AiReview = evt.ReviewData;
                 diagramVersion.DiagramType = evt.DiagramType;
-                diagramVersion.Status = "Analyzed";
+                diagramVersion.Status = evt.DiagramType == "Failed" ? "Failed" : "Analyzed";
 
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation($"Updated DiagramVersion {evt.VersionId} with AI Score: {evt.Score}");
+                _logger.LogInformation($"Updated DiagramVersion {evt.VersionId} with AI Status: {diagramVersion.Status}, Score: {evt.Score}");
+                // 2. Kiểm tra xem diagram này có thuộc một Document nào không
+                var diagram = await _dbContext.Diagrams.FirstOrDefaultAsync(d => d.Id == diagramVersion.DiagramId);
+                if (diagram != null && diagram.DocumentId.HasValue)
+                {
+                    var documentId = diagram.DocumentId.Value;
+                    _logger.LogInformation($"Diagram belongs to Document: {documentId}. Checking consistency status...");
+
+                    var documentDiagrams = await _dbContext.Diagrams
+                        .Where(d => d.DocumentId == documentId)
+                        .ToListAsync();
+                    var versionIds = new List<Guid>();
+                    bool allAnalyzed = true;
+                    foreach (var docDiag in documentDiagrams)
+                    {
+                        var lastestVersion = await _dbContext.DiagramVersions
+                            .Where(v => v.DiagramId == docDiag.Id)
+                            .OrderByDescending(v => v.UploadedAt)
+                            .FirstOrDefaultAsync();
+                        if (lastestVersion == null || (lastestVersion.Status != "Analyzed" && lastestVersion.Status != "Failed"))
+                        {
+                            allAnalyzed = false;
+                            _logger.LogInformation($"Diagram {docDiag.Name} (ID: {docDiag.Id}) is not yet processed (status: {(lastestVersion?.Status ?? "none")}).");
+                            break;
+                        }
+                        if (lastestVersion.Status == "Analyzed")
+                        {
+                            versionIds.Add(lastestVersion.Id);
+                        }
+                    }
+                    // 3. Nếu tất cả các diagram trong document đã phân tích xong -> Gửi sự kiện yêu cầu so sánh đồng nhất
+                    if (allAnalyzed && versionIds.Count > 0)
+                    {
+                        _logger.LogInformation($"All {versionIds.Count} diagrams in Document {documentId} have been analyzed. Triggering consistency review...");
+                        await _publishEndpoint.Publish(new DocumentConsistencyReviewRequestedEvent(documentId, versionIds));
+                    }
+                }
             }
             catch (Exception ex)
             {

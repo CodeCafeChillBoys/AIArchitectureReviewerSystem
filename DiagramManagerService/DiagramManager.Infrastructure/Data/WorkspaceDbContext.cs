@@ -13,7 +13,7 @@ namespace DiagramManager.Infrastructure.Data
         public DbSet<Diagram> Diagrams { get; set; } = null!;
         public DbSet<DiagramVersion> DiagramVersions { get; set; } = null!;
         public DbSet<DiagramShare> DiagramShares { get; set; } = null!;
-
+        public DbSet<Document> Documents { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -22,7 +22,7 @@ namespace DiagramManager.Infrastructure.Data
             modelBuilder.Entity<Diagram>().ToTable("DIAGRAMS");
             modelBuilder.Entity<DiagramVersion>().ToTable("DIAGRAM_VERSIONS");
             modelBuilder.Entity<DiagramShare>().ToTable("DIAGRAM_SHARES");
-
+            modelBuilder.Entity<Document>().ToTable("DOCUMENTS");
             modelBuilder.Entity<Diagram>()
                 .HasOne(d => d.Workspace)
                 .WithMany(w => w.Diagrams)
