@@ -35,7 +35,8 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+        cfg.Host(rabbitHost, "/", h =>
         {
             h.Username("guest");
             h.Password("guest");
@@ -56,8 +57,8 @@ builder.Services.AddMassTransit(x =>
 // gRPC Client for UserAuthService
 builder.Services.AddGrpcClient<AuthGrpc.AuthGrpcClient>(o =>
 {
-    // Cấu hình URL của UserAuthService (HTTPS port 7158)
-    o.Address = new Uri("https://localhost:7158");
+    var userAuthUrl = builder.Configuration["Services:UserAuthUri"] ?? "https://localhost:7158";
+    o.Address = new Uri(userAuthUrl);
 });
 
 builder.Services.AddCors(options =>

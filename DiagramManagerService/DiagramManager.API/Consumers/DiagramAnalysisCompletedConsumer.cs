@@ -28,7 +28,7 @@ namespace DiagramManager.API.Consumers
             try
             {
                 var diagramVersion = await _dbContext.DiagramVersions.FirstOrDefaultAsync(v => v.Id == evt.VersionId);
-                
+
                 if (diagramVersion == null)
                 {
                     _logger.LogWarning($"DiagramVersion {evt.VersionId} not found in database.");
