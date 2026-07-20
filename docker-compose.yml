@@ -16,25 +16,13 @@ services:
     networks:
       - app-network
 
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    networks:
-      - app-network
-
   user-auth-service:
     build:
       context: .
       dockerfile: UserAuthService/Dockerfile
     container_name: user-auth-service
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres-db;Port=5432;Database=UserAuthService_DB;Username=postgres;Password=postgres
     depends_on:
@@ -48,14 +36,13 @@ services:
       dockerfile: DiagramManagerService/Dockerfile
     container_name: diagram-manager-service
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres-db;Port=5432;Database=DiagramManagerDb;Username=postgres;Password=postgres
-      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Host=host.docker.internal
       - Services__UserAuthUri=http://user-auth-service:8080
     depends_on:
       - postgres-db
-      - rabbitmq
       - user-auth-service
     networks:
       - app-network
@@ -66,14 +53,13 @@ services:
       dockerfile: AIArchitectureReviewer/Dockerfile
     container_name: ai-reviewer-service
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres-db;Port=5432;Database=AIArchitectureReviewerDb;Username=postgres;Password=postgres
-      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Host=host.docker.internal
       - Gemini__ApiKeys__0=${GEMINI_API_KEY}
     depends_on:
       - postgres-db
-      - rabbitmq
     networks:
       - app-network
 
@@ -85,7 +71,7 @@ services:
     ports:
       - "5000:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - ReverseProxy__Clusters__userAuthCluster__Destinations__destination1__Address=http://user-auth-service:8080
       - ReverseProxy__Clusters__diagramManagerCluster__Destinations__destination1__Address=http://diagram-manager-service:8080
