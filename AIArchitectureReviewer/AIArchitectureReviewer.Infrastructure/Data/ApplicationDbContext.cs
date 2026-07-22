@@ -15,7 +15,7 @@ namespace AIArchitectureReviewer.Infrastructure.Data
         public DbSet<ChatSession> ChatSessions { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
         public DbSet<ConsistencyReport> ConsistencyReports { get; set; } = null!;
-
+        public DbSet<PromptTemplate> PromptTemplates { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -37,6 +37,7 @@ namespace AIArchitectureReviewer.Infrastructure.Data
             modelBuilder.Entity<ChatSession>().ToTable("CHAT_SESSIONS");
             modelBuilder.Entity<ChatMessage>().ToTable("CHAT_MESSAGES");
             modelBuilder.Entity<ConsistencyReport>().ToTable("CONSISTENCY_REPORTS");
+            modelBuilder.Entity<PromptTemplate>().ToTable("PROMPT_TEMPLATES");
 
             // ChatMessage -> ChatSession (Many-to-One)
             modelBuilder.Entity<ChatMessage>()

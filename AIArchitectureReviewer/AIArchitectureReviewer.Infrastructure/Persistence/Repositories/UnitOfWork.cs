@@ -15,7 +15,7 @@ namespace AIArchitectureReviewer.Infrastructure.Persistence.Repositories
         public IGenericRepository<AnalysisReport> AnalysisReports { get; private set; }
         public IGenericRepository<ChatSession> ChatSessions { get; private set; }
         public IGenericRepository<ChatMessage> ChatMessages { get; private set; }
-
+        public IGenericRepository<PromptTemplate> PromptTemplates { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -24,6 +24,7 @@ namespace AIArchitectureReviewer.Infrastructure.Persistence.Repositories
             AnalysisReports = new GenericRepository<AnalysisReport>(_context);
             ChatSessions = new GenericRepository<ChatSession>(_context);
             ChatMessages = new GenericRepository<ChatMessage>(_context);
+            PromptTemplates = new GenericRepository<PromptTemplate>(_context);
         }
 
         public async Task<int> CompleteAsync()

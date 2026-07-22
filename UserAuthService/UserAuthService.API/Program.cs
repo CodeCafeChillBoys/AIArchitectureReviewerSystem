@@ -16,6 +16,7 @@ builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddDependencyInjection();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
 builder.Services.AddGrpc();
