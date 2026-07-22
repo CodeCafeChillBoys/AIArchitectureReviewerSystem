@@ -4,7 +4,7 @@ namespace AIArchitectureReviewer.Application.Interfaces.RAG
 {
     public interface IRAGService
     {
-        Task<string> AnswerQuestionAsync(string question, int contextTopK = 5);
+        // Task<string> AnswerQuestionAsync(string question, int contextTopK = 5);
         Task<string> GetRawContextAsync(string question, int contextTopK = 5);
         Task<string> GenerateContentAsync(string systemPrompt, string userPrompt);
         Task<string> GenerateContentWithImageAsync(string systemPrompt, string userPrompt, byte[] imageBytes, string mimeType);

@@ -41,7 +41,7 @@ namespace AIArchitectureReviewer.API.Consumers
 
                 _logger.LogInformation($"Received diagram length: {fileBytes.Length}. MimeType: {mimeType}. Passing to AI for review...");
 
-                var result = await _orchestrator.ProcessAsync(evt.VersionId, fileBytes, mimeType, null);
+                var result = await _orchestrator.ProcessAsync(evt.VersionId, fileBytes, mimeType);
 
                 _logger.LogInformation($"Diagram successfully analyzed. Session ID: {result.SessionId}, Score: {result.Score?.ToJsonString()}");
 

@@ -31,7 +31,7 @@ namespace AIArchitectureReviewer.Infrastructure.Search
 
             var query = _dbContext.RuleChunks
                 .Where(c => c.Embedding != null)
-                .OrderBy(c => c.Embedding!.CosineDistance(pgVector))
+                .OrderBy(c => c.Embedding!.CosineDistance(pgVector)) // sẽ tính khoảng cách và lấy khoảng cách gần nhau
                 .Take(topK)
                 .Select(c => new SearchResultDTO
                 {
@@ -41,7 +41,6 @@ namespace AIArchitectureReviewer.Infrastructure.Search
                     Score = 1 - c.Embedding!.CosineDistance(pgVector), // Convert distance to similarity score
                     Source = "vector"
                 });
-
             return await query.ToListAsync();
         }
     }
