@@ -26,8 +26,9 @@ namespace AIArchitectureReviewer.Application.Orchestrators
             // 3. Invoke Gemini to compare the UML JSON structure with the actual source code
             var userPrompt = $"CẤU TRÚC UML THIẾT KẾ (JSON):\n{umlJson}\n\nMÃ NGUỒN THỰC TẾ:\n{formattedCode}";
 
+            var prompt = await GetPromptContentAsync("Conformance Review", SystemPrompts.ConformanceReviewPrompt);
             var responseText = await _ragService.GenerateContentAsync(
-                SystemPrompts.ConformanceReviewPrompt,
+                prompt,
                 userPrompt);
 
             // 4. Clean JSON response and parse it

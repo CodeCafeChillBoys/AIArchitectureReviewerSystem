@@ -11,7 +11,7 @@ namespace AIArchitectureReviewer.Application.Interfaces.Repositories
         IGenericRepository<AnalysisReport> AnalysisReports { get; }
         IGenericRepository<ChatSession> ChatSessions { get; }
         IGenericRepository<ChatMessage> ChatMessages { get; }
-
+        IGenericRepository<PromptTemplate> PromptTemplates { get; }
         Task<int> CompleteAsync();
     }
 }

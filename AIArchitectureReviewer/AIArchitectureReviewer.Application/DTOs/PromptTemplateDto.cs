@@ -1,0 +1,14 @@
+using System;
+
+namespace AIArchitectureReviewer.Application.DTOs
+{
+    public class PromptTemplateDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string Content { get; set; } = null!;
+        public string DiagramType { get; set; } = null!;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+}
