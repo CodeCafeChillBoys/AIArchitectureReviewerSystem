@@ -65,6 +65,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ISystemRuleService, SystemRuleService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<ICodeExtractorService, AIArchitectureReviewer.Infrastructure.Services.CodeExtractorService>();
+builder.Services.AddScoped<IPromptTemplateService, PromptTemplateService>();
 
 
 builder.Services.AddCors(options =>
@@ -84,6 +85,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    AIArchitectureReviewer.Infrastructure.Data.DbInitializer.SeedPromptsAsync(db).GetAwaiter().GetResult();
 }
 
 // Configure the HTTP request pipeline.
