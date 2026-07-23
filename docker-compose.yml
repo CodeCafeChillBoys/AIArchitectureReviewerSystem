@@ -41,6 +41,8 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres-db;Port=5432;Database=DiagramManagerDb;Username=postgres;Password=postgres
       - RabbitMQ__Host=rabbitmq
       - Services__UserAuthUri=http://user-auth-service:8080
+    volumes:
+      - diagram_storage:/app/Storage
     depends_on:
       - postgres-db
       - user-auth-service
@@ -100,4 +102,6 @@ networks:
 
 volumes:
   pgdata:
+    driver: local
+  diagram_storage:
     driver: local
