@@ -25,7 +25,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger"; // Set Swagger UI at /swagger
 });
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapReverseProxy();
 

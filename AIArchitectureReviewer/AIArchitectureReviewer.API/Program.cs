@@ -93,6 +93,15 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+
+app.MapGet("/health", async (ApplicationDbContext dbContext, CancellationToken cancellationToken) =>
+{
+    var healthy = await dbContext.Database.CanConnectAsync(cancellationToken);
+    return Results.Json(
+        new { Service = "AIArchitectureReviewer", Status = healthy ? "Healthy" : "Unhealthy", CheckedAtUtc = DateTime.UtcNow },
+        statusCode: healthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+});
+
 app.MapControllers();
 
 

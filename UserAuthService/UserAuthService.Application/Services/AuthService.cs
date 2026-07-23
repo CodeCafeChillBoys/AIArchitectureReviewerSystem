@@ -46,7 +46,8 @@ namespace UserAuthService.Application.Services
             {
                 AccessToken = token,
                 UserId = user.UserId,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
         }
 
@@ -64,7 +65,8 @@ namespace UserAuthService.Application.Services
             {
                 AccessToken = token,
                 UserId = user.UserId,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
         } 
 
@@ -80,7 +82,8 @@ namespace UserAuthService.Application.Services
                 Email = user.Email,
                 Fullname = user.Fullname,
                 Avatarurl = user.Avatarurl,
-                Phone = user.Phone
+                Phone = user.Phone,
+                Role = user.Role
             };
         }
     }

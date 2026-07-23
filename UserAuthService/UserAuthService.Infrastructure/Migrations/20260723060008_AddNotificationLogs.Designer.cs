@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using UserAuthService.Infrastructure.Persitence.Data;
@@ -11,9 +12,11 @@ using UserAuthService.Infrastructure.Persitence.Data;
 namespace UserAuthService.Infrastructure.Migrations
 {
     [DbContext(typeof(UserAuthServiceDbContext))]
-    partial class UserAuthServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723060008_AddNotificationLogs")]
+    partial class AddNotificationLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
