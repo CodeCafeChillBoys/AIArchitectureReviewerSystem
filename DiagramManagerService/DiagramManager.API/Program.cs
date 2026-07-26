@@ -53,6 +53,10 @@ builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IDocumentExtractorService, DocumentExtractorService>();
 builder.Services.AddScoped<IStorageMonitoringService, LocalStorageMonitoringService>();
 
+// Database
+builder.Services.AddDbContext<WorkspaceDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // Redis Distributed Cache
 builder.Services.AddStackExchangeRedisCache(options =>
 {
