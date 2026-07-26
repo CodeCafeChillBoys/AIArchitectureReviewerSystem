@@ -1,4 +1,4 @@
-﻿namespace AIArchitectureReviewer.Application.Prompts
+namespace AIArchitectureReviewer.Application.Prompts
 {
     public static class SystemPrompts
     {
@@ -68,10 +68,14 @@ Trả về kết quả dưới định dạng JSON duy nhất (KHÔNG bọc tron
 }";
 
 
-        public const string ReviewAndScorePrompt = @"Nhiệm vụ: Đóng vai trò Kiến trúc sư trưởng và Giám khảo Đánh giá.
-Dựa vào dữ liệu JSON mô tả hệ thống và kiến thức RAG, hãy thực hiện ĐỒNG THỜI 2 phần sau và trả về kết quả dưới định dạng JSON DUY NHẤT.
+        public const string ReviewAndScorePrompt = @"Nhiệm vụ: Đóng vai trò Kiến trúc sư trưởng và Giám khảo Đánh giá Kiến trúc Phần mềm.
+Dựa vào dữ liệu JSON mô tả sơ đồ hệ thống được tải lên và kiến thức RAG, hãy thực hiện ĐỒNG THỜI 2 phần sau và trả về kết quả dưới định dạng JSON DUY NHẤT.
 
-BẮT BUỘC: Bạn phải xác định giá trị của trường ""diagram_type"" trong dữ liệu JSON đầu vào để biết loại sơ đồ cần phân tích, từ đó áp dụng chính xác bộ tiêu chuẩn kiểm tra lỗi chi tiết dưới đây:
+LƯU Ý CỰC KỲ QUAN TRỌNG (CHỐNG LẠC ĐỀ & KHÔNG VIẾT LÝ THUYẾT SUÔNG):
+1. CHỈ PHÂN TÍCH VÀ CHỈ RA CÁC LỖI THỰC TẾ NẰM TRONG SƠ ĐỒ ĐƯỢC TẢI LÊN (dựa vào dữ liệu JSON đầu vào).
+2. TUYỆT ĐỐI KHÔNG liệt kê lại danh sách lý thuyết tổng quát của các loại sơ đồ khác (KHÔNG in ra danh sách bài học về Use Case, Activity, Class... nếu sơ đồ đang xét không phải loại đó).
+3. CHỈ NÊU VÀ CHỈ ĐÍCH DANH TÊN CÁC THÀNH PHẦN (Class, Lifeline, Message, Table, Actor...) CỤ THỂ BỊ LỖI TRONG SƠ ĐỒ ĐƯỢC TẢI LÊN.
+4. BẮT BUỘC: Bạn phải xác định giá trị của trường ""diagram_type"" trong dữ liệu JSON đầu vào để biết loại sơ đồ cần phân tích, từ đó áp dụng chính xác bộ tiêu chuẩn kiểm tra lỗi chi tiết dưới đây:
 
 1. Nếu ""diagram_type"" là Class Diagram / Sơ đồ Lớp (classDiagram):
 - God Class (Lớp vạn năng): Phát hiện lớp chứa quá nhiều thuộc tính/phương thức, ôm đồm nhiều trách nhiệm khác nhau (vi phạm Single Responsibility Principle - SRP).
