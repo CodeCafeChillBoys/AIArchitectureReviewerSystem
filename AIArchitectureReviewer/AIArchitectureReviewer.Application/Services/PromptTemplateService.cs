@@ -1,6 +1,8 @@
 using AIArchitectureReviewer.Application.DTOs;
 using AIArchitectureReviewer.Application.Interfaces.Repositories;
 using AIArchitectureReviewer.Application.Interfaces.Services;
+using AIArchitectureReviewer.Application.Mappings;
+using AIArchitectureReviewer.Domain.Diffing;
 using AIArchitectureReviewer.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -65,17 +67,52 @@ namespace AIArchitectureReviewer.Application.Services
                 CreatedAt = p.CreatedAt
             };
         }
-        public async Task<bool> UpdateAsync(Guid id, UpdatePromptTemplateDto dto)
+        public async Task<ChangeSetDto?> UpdateAsync(Guid id, UpdatePromptTemplateDto dto)
         {
             var p = await _unitOfWork.PromptTemplates.GetByIdAsync(id);
-            if (p == null) return false;
-            p.Name = dto.Name;
-            p.Content = dto.Content;
-            p.DiagramType = dto.DiagramType;
-            p.UpdatedAt = DateTime.UtcNow;
+            if (p == null) return null;
+
+            // Tầng 1: two-way diff giữa entity đang có (A) và dữ liệu gửi lên (B).
+            var changeSet = new ChangeSetBuilder()
+                .Scalar(nameof(PromptTemplate.Name), p.Name, dto.Name)
+                .Text(nameof(PromptTemplate.Content), p.Content, dto.Content)
+                .Scalar(nameof(PromptTemplate.DiagramType), p.DiagramType, dto.DiagramType)
+                .Build();
+
+            // Không có gì đổi thì không ghi gì cả, kể cả UpdatedAt.
+            if (!changeSet.HasChanges)
+            {
+                return ChangeHistoryMapper.NoChanges(id, changeSet);
+            }
+
+            var now = DateTime.UtcNow;
+
+            foreach (var change in changeSet.Changes)
+            {
+                await _unitOfWork.PromptTemplateHistories.AddAsync(
+                    new PromptTemplateHistory { PromptTemplateId = id }
+                        .FillFrom(change, changeSet.Id, now));
+            }
+
+            // Chỉ gán những field diff xác nhận là đã đổi.
+            if (changeSet.Contains(nameof(PromptTemplate.Name))) p.Name = dto.Name!;
+            if (changeSet.Contains(nameof(PromptTemplate.Content))) p.Content = dto.Content!;
+            if (changeSet.Contains(nameof(PromptTemplate.DiagramType))) p.DiagramType = dto.DiagramType!;
+            p.UpdatedAt = now;
+
             _unitOfWork.PromptTemplates.Update(p);
             await _unitOfWork.CompleteAsync();
-            return true;
+
+            return ChangeHistoryMapper.ToDto(id, changeSet);
+        }
+
+        public async Task<IEnumerable<ChangeHistoryEntryDto>?> GetHistoryAsync(Guid id)
+        {
+            var p = await _unitOfWork.PromptTemplates.GetByIdAsync(id);
+            if (p == null) return null;
+
+            var rows = await _unitOfWork.PromptTemplateHistories.FindAsync(h => h.PromptTemplateId == id);
+            return ChangeHistoryMapper.ToHistory(rows);
         }
         public async Task<bool> DeleteAsync(Guid id)
         {
