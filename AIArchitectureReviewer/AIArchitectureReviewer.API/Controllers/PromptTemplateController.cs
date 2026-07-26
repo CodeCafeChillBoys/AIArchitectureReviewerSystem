@@ -38,9 +38,17 @@ namespace AIArchitectureReviewer.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePromptTemplateDto dto)
         {
-            var success = await _promptService.UpdateAsync(id, dto);
-            if (!success) return NotFound();
-            return Ok(new { Message = "Cập nhật prompt thành công." });
+            var result = await _promptService.UpdateAsync(id, dto);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/history")]
+        public async Task<IActionResult> GetHistory(Guid id)
+        {
+            var history = await _promptService.GetHistoryAsync(id);
+            if (history == null) return NotFound();
+            return Ok(history);
         }
 
         [HttpDelete("{id}")]
