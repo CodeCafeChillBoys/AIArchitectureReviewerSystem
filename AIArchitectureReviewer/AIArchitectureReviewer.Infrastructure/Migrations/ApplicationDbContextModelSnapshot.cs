@@ -126,6 +126,81 @@ namespace AIArchitectureReviewer.Infrastructure.Migrations
                     b.ToTable("CONSISTENCY_REPORTS", (string)null);
                 });
 
+            modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.PromptTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiagramType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PROMPT_TEMPLATES", (string)null);
+                });
+
+            modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.PromptTemplateHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Additions")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ChangeSetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Deletions")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NewValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OldValue")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("PromptTemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnifiedDiff")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PromptTemplateId", "ChangedAt");
+
+                    b.ToTable("PROMPT_TEMPLATE_HISTORY", (string)null);
+                });
+
             modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.RuleChunk", b =>
                 {
                     b.Property<Guid>("Id")
@@ -180,6 +255,50 @@ namespace AIArchitectureReviewer.Infrastructure.Migrations
                     b.ToTable("SYSTEM_RULES", (string)null);
                 });
 
+            modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.SystemRuleHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Additions")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ChangeSetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Deletions")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NewValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OldValue")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SystemRuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnifiedDiff")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemRuleId", "ChangedAt");
+
+                    b.ToTable("SYSTEM_RULE_HISTORY", (string)null);
+                });
+
             modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.ChatMessage", b =>
                 {
                     b.HasOne("AIArchitectureReviewer.Domain.Entities.ChatSession", "ChatSession")
@@ -191,10 +310,32 @@ namespace AIArchitectureReviewer.Infrastructure.Migrations
                     b.Navigation("ChatSession");
                 });
 
+            modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.PromptTemplateHistory", b =>
+                {
+                    b.HasOne("AIArchitectureReviewer.Domain.Entities.PromptTemplate", "PromptTemplate")
+                        .WithMany()
+                        .HasForeignKey("PromptTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PromptTemplate");
+                });
+
             modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.RuleChunk", b =>
                 {
                     b.HasOne("AIArchitectureReviewer.Domain.Entities.SystemRule", "SystemRule")
                         .WithMany("RuleChunks")
+                        .HasForeignKey("SystemRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SystemRule");
+                });
+
+            modelBuilder.Entity("AIArchitectureReviewer.Domain.Entities.SystemRuleHistory", b =>
+                {
+                    b.HasOne("AIArchitectureReviewer.Domain.Entities.SystemRule", "SystemRule")
+                        .WithMany()
                         .HasForeignKey("SystemRuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

@@ -20,6 +20,7 @@ namespace UserAuthService.Application.DTOs
         public string AccessToken { get; set; } = null!;
         public Guid UserId { get; set; }
         public string Email { get; set; } = null!;
+        public int Role { get; set; }
     }
 
     public class ProfileResponseDto
@@ -29,5 +30,6 @@ namespace UserAuthService.Application.DTOs
         public string? Fullname { get; set; }
         public string? Avatarurl { get; set; }
         public string? Phone { get; set; }
+        public int Role { get; set; }
     }
 }

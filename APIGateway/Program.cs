@@ -17,18 +17,15 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwaggerUI(c =>
 {
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "UserAuthService API");
-        c.SwaggerEndpoint("/diagram/swagger/v1/swagger.json", "DiagramManagerService API");
-        c.SwaggerEndpoint("/ai/swagger/v1/swagger.json", "AIArchitectureReviewer API");
-        c.RoutePrefix = "swagger"; // Set Swagger UI at /swagger
-    });
-}
+    c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "UserAuthService API");
+    c.SwaggerEndpoint("/diagram/swagger/v1/swagger.json", "DiagramManagerService API");
+    c.SwaggerEndpoint("/ai/swagger/v1/swagger.json", "AIArchitectureReviewer API");
+    c.RoutePrefix = "swagger"; // Set Swagger UI at /swagger
+});
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapReverseProxy();
 

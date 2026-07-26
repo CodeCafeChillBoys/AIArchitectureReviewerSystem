@@ -31,7 +31,8 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<AIArchitectureReviewer.API.Consumers.DocumentConsistencyReviewRequestedConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+        cfg.Host(rabbitHost, "/", h =>
         {
             h.Username("guest");
             h.Password("guest");
@@ -64,6 +65,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ISystemRuleService, SystemRuleService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<ICodeExtractorService, AIArchitectureReviewer.Infrastructure.Services.CodeExtractorService>();
+builder.Services.AddScoped<IPromptTemplateService, PromptTemplateService>();
 
 
 builder.Services.AddCors(options =>
@@ -83,16 +85,23 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    AIArchitectureReviewer.Infrastructure.Data.DbInitializer.SeedPromptsAsync(db).GetAwaiter().GetResult();
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
+
+app.MapGet("/health", async (ApplicationDbContext dbContext, CancellationToken cancellationToken) =>
+{
+    var healthy = await dbContext.Database.CanConnectAsync(cancellationToken);
+    return Results.Json(
+        new { Service = "AIArchitectureReviewer", Status = healthy ? "Healthy" : "Unhealthy", CheckedAtUtc = DateTime.UtcNow },
+        statusCode: healthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+});
+
 app.MapControllers();
 
 

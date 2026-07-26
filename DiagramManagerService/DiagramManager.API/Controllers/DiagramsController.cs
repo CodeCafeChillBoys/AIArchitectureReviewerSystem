@@ -1,3 +1,4 @@
+using DiagramManager.Application.Helpers;
 using DiagramManager.Application.Interfaces;
 using DiagramManager.Domain.Entities;
 using DiagramManager.Infrastructure.Data;
@@ -5,10 +6,12 @@ using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Shared.Messaging.Events;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DiagramManager.API.Controllers
@@ -20,12 +23,18 @@ namespace DiagramManager.API.Controllers
         private readonly WorkspaceDbContext _context;
         private readonly IFileStorageService _storageService;
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IDistributedCache _cache;
 
-        public DiagramsController(WorkspaceDbContext context, IFileStorageService storageService, IPublishEndpoint publishEndpoint)
+        public DiagramsController(
+            WorkspaceDbContext context,
+            IFileStorageService storageService,
+            IPublishEndpoint publishEndpoint,
+            IDistributedCache cache)
         {
             _context = context;
             _storageService = storageService;
             _publishEndpoint = publishEndpoint;
+            _cache = cache;
         }
 
         [HttpPost("upload")]
@@ -36,10 +45,23 @@ namespace DiagramManager.API.Controllers
             var workspace = await _context.Workspaces.FindAsync(workspaceId);
             if (workspace == null) return NotFound("Workspace not found");
 
-            // Save File
+            // Read file bytes to calculate Hash
+            byte[] fileBytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+
+            string fileHash = FileHashHelper.ComputeSha256(fileBytes);
+            string hashCacheKey = $"diagram:hash:{fileHash}";
+
+            // Check if AI Analysis result for this exact file hash is in Redis Cache
+            string? cachedReviewJson = await _cache.GetStringAsync(hashCacheKey);
+
+            // Save File to Storage
             string storageUrl = await _storageService.SaveFileAsync(file, workspaceId.ToString());
-            
-            // Save to DB
+
             var diagram = new Diagram
             {
                 Id = Guid.NewGuid(),
@@ -49,7 +71,52 @@ namespace DiagramManager.API.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            var version = new DiagramVersion
+            DiagramVersion version;
+
+            if (!string.IsNullOrEmpty(cachedReviewJson))
+            {
+                // CACHE HIT: Image was already analyzed before! Fast return from Redis without calling AI/RabbitMQ
+                using var doc = JsonDocument.Parse(cachedReviewJson);
+                var root = doc.RootElement;
+
+                float? score = root.TryGetProperty("score", out var sProp) && sProp.ValueKind != JsonValueKind.Null ? (float?)sProp.GetDouble() : null;
+                string? reviewData = root.TryGetProperty("reviewData", out var rProp) ? rProp.GetString() : null;
+                string? diagramType = root.TryGetProperty("diagramType", out var dtProp) ? dtProp.GetString() : null;
+
+                version = new DiagramVersion
+                {
+                    Id = Guid.NewGuid(),
+                    DiagramId = diagram.Id,
+                    VersionNumber = 1,
+                    StorageUrl = storageUrl,
+                    RawFormat = Path.GetExtension(file.FileName),
+                    AiScore = score,
+                    AiReview = reviewData,
+                    DiagramType = diagramType,
+                    Status = "Analyzed",
+                    UploadedAt = DateTime.UtcNow
+                };
+
+                _context.Diagrams.Add(diagram);
+                _context.DiagramVersions.Add(version);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    DiagramId = diagram.Id,
+                    VersionId = version.Id,
+                    StorageUrl = storageUrl,
+                    IsDuplicate = true,
+                    FromCache = true,
+                    Message = "Sơ đồ này trùng khớp với file đã được AI phân tích trước đó (Lấy từ Redis Cache)",
+                    AiScore = score,
+                    AiReview = reviewData,
+                    DiagramType = diagramType
+                });
+            }
+
+            // CACHE MISS: New image, publish to RabbitMQ for AI processing
+            version = new DiagramVersion
             {
                 Id = Guid.NewGuid(),
                 DiagramId = diagram.Id,
@@ -64,16 +131,24 @@ namespace DiagramManager.API.Controllers
             _context.DiagramVersions.Add(version);
             await _context.SaveChangesAsync();
 
-            // Publish Event
-            byte[] fileBytes;
-            using (var memoryStream = new MemoryStream())
+            // Save VersionId -> FileHash mapping in Redis for 24h
+            await _cache.SetStringAsync($"diagram:version_hash:{version.Id}", fileHash, new DistributedCacheEntryOptions
             {
-                await file.CopyToAsync(memoryStream);
-                fileBytes = memoryStream.ToArray();
-            }
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+            });
+
+            // Publish Event to RabbitMQ
             await _publishEndpoint.Publish(new DiagramUploadedEvent(diagram.Id, version.Id, version.StorageUrl, fileBytes));
 
-            return Ok(new { DiagramId = diagram.Id, VersionId = version.Id, StorageUrl = storageUrl });
+            return Ok(new
+            {
+                DiagramId = diagram.Id,
+                VersionId = version.Id,
+                StorageUrl = storageUrl,
+                IsDuplicate = false,
+                FromCache = false,
+                FileHash = fileHash
+            });
         }
 
         [HttpGet("{id}")]

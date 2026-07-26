@@ -1,6 +1,8 @@
 @DiagramManager.API_HostAddress = http://localhost:5155
+@AdminToken = paste-admin-jwt-here
 
-GET {{DiagramManager.API_HostAddress}}/weatherforecast/
+GET {{DiagramManager.API_HostAddress}}/api/admin/storage?workspaceLimit=20
 Accept: application/json
+Authorization: Bearer {{AdminToken}}
 
 ###

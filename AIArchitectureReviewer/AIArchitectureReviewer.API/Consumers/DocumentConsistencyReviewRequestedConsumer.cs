@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
@@ -76,9 +76,45 @@ namespace AIArchitectureReviewer.API.Consumers
                 string reportText = consistencyResult["ConsistencyReport"]?.ToString() ?? "";
 
                 float consistencyScore = 10.0f;
-               
+                try
+                {
+                    string cleaned = reportText.Trim();
+                    var match = System.Text.RegularExpressions.Regex.Match(cleaned, @"```json\s*([\s\S]*?)```", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        cleaned = match.Groups[1].Value.Trim();
+                    }
 
-                _logger.LogInformation($"Consistency review completed. Publishing Completed Event for DocumentId: {evt.DocumentId}");
+                    var parsedReport = JsonNode.Parse(cleaned);
+                    if (parsedReport != null)
+                    {
+                        var inconsistenciesNode = parsedReport["Inconsistencies"]?.AsArray();
+                        if (inconsistenciesNode != null)
+                        {
+                            int count = inconsistenciesNode.Count;
+                            // Trừ 1.5 điểm cho mỗi lỗi bất đồng nhất, tối thiểu là 1.0 điểm
+                            consistencyScore = Math.Max(1.0f, 10.0f - (count * 1.5f));
+                        }
+                        else
+                        {
+                            var isConsistentVal = parsedReport["IsConsistent"]?.GetValue<bool>();
+                            if (isConsistentVal == false)
+                            {
+                                consistencyScore = 5.0f;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse ConsistencyReport JSON to calculate score. Falling back to keyword search.");
+                    if (reportText.Contains("\"IsConsistent\": false") || reportText.Contains("\"IsConsistent\":false"))
+                    {
+                        consistencyScore = 6.0f;
+                    }
+                }
+
+                _logger.LogInformation($"Consistency review completed. Calculated Score: {consistencyScore}. Publishing Completed Event for DocumentId: {evt.DocumentId}");
 
            
                 await _publishEndpoint.Publish(new DocumentConsistencyReviewCompletedEvent(

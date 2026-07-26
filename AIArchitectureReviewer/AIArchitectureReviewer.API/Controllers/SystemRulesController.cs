@@ -71,6 +71,10 @@ namespace AIArchitectureReviewer.API.Controllers
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "RAG_Documents");
             if (!Directory.Exists(folderPath))
             {
+                folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RAG_Documents");
+            }
+            if (!Directory.Exists(folderPath))
+            {
                 Directory.CreateDirectory(folderPath);
                 return Ok(new { Message = "Created RAG_Documents folder. Please add files and run again." });
             }
@@ -100,9 +104,19 @@ namespace AIArchitectureReviewer.API.Controllers
 
                 var content = await System.IO.File.ReadAllTextAsync(file);
 
+                string diagramType = "Global";
+                var nameLower = ruleName.ToLower();
+                if (nameLower.Contains("sequence")) diagramType = "Sequence Diagram";
+                else if (nameLower.Contains("class")) diagramType = "Class Diagram";
+                else if (nameLower.Contains("er") || nameLower.Contains("entity")) diagramType = "ER Diagram";
+                else if (nameLower.Contains("flowchart")) diagramType = "Flowchart";
+                else if (nameLower.Contains("usecase") || nameLower.Contains("use case")) diagramType = "Use Case Diagram";
+                else if (nameLower.Contains("consistency")) diagramType = "Consistency Check";
+                else if (nameLower.Contains("guideline") || nameLower.Contains("relationship")) diagramType = "Guidelines";
+
                 var dto = new CreateSystemRuleDto
                 {
-                    DiagramType = "Global",
+                    DiagramType = diagramType,
                     RuleName = ruleName,
                     RegexOrCondition = content,
                     IsActive = true
@@ -130,17 +144,19 @@ namespace AIArchitectureReviewer.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, UpdateSystemRuleDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSystemRuleDto dto)
         {
-            try
-            {
-                await _systemRuleService.UpdateRuleAsync(id, dto);
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                return NotFound();
-            }
+            var result = await _systemRuleService.UpdateRuleAsync(id, dto);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/history")]
+        public async Task<IActionResult> GetHistory(Guid id)
+        {
+            var history = await _systemRuleService.GetHistoryAsync(id);
+            if (history == null) return NotFound();
+            return Ok(history);
         }
 
         [HttpDelete("{id}")]

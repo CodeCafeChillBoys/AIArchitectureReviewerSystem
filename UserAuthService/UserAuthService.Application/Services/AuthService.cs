@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using UserAuthService.Application.DTOs;
 using UserAuthService.Application.Interfaces;
 using UserAuthService.Domain.Entities;
+using UserAuthService.Domain.INum;
 using UserAuthService.Infrastructure.Persitence.Data;
 using BCrypt.Net;
 
@@ -32,7 +33,7 @@ namespace UserAuthService.Application.Services
                 Email = request.Email,
                 Passwordhash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Fullname = request.Fullname,
-                Role = 1,
+                Role = (int)UserRole.Student,
                 Isactive = true,
                 Createdat = DateTime.UtcNow
             };
@@ -45,7 +46,8 @@ namespace UserAuthService.Application.Services
             {
                 AccessToken = token,
                 UserId = user.UserId,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
         }
 
@@ -63,7 +65,8 @@ namespace UserAuthService.Application.Services
             {
                 AccessToken = token,
                 UserId = user.UserId,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
         } 
 
@@ -79,7 +82,8 @@ namespace UserAuthService.Application.Services
                 Email = user.Email,
                 Fullname = user.Fullname,
                 Avatarurl = user.Avatarurl,
-                Phone = user.Phone
+                Phone = user.Phone,
+                Role = user.Role
             };
         }
     }

@@ -5,7 +5,11 @@ using MassTransit;
 using DiagramManager.Application.Services;
 using DiagramManager.API.GrpcClients;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using DiagramManager.API.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,15 +21,48 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     });
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter an admin JWT token."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // File Storage
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IDocumentExtractorService, DocumentExtractorService>();
+builder.Services.AddScoped<IStorageMonitoringService, LocalStorageMonitoringService>();
 
 // Database
 builder.Services.AddDbContext<WorkspaceDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Redis Distributed Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    options.InstanceName = "AIReview_";
+});
 
 // MassTransit / RabbitMQ
 builder.Services.AddMassTransit(x =>
@@ -35,7 +72,8 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+        cfg.Host(rabbitHost, "/", h =>
         {
             h.Username("guest");
             h.Password("guest");
@@ -56,8 +94,21 @@ builder.Services.AddMassTransit(x =>
 // gRPC Client for UserAuthService
 builder.Services.AddGrpcClient<AuthGrpc.AuthGrpcClient>(o =>
 {
-    // Cấu hình URL của UserAuthService (HTTPS port 7158)
-    o.Address = new Uri("https://localhost:7158");
+    var userAuthUrl = builder.Configuration["Services:UserAuthUri"] ?? "https://localhost:7158";
+    o.Address = new Uri(userAuthUrl);
+});
+
+builder.Services.AddAuthentication(GrpcAuthenticationHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, GrpcAuthenticationHandler>(
+        GrpcAuthenticationHandler.SchemeName,
+        _ => { });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("1");
+    });
 });
 
 builder.Services.AddCors(options =>
@@ -81,46 +132,30 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
-
-// Custom Auth Middleware via gRPC
-app.Use(async (context, next) =>
-{
-    var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-    if (!string.IsNullOrEmpty(token))
-    {
-        var grpcClient = context.RequestServices.GetRequiredService<AuthGrpc.AuthGrpcClient>();
-        try
-        {
-            var response = await grpcClient.ValidateTokenAsync(new TokenRequest { Token = token });
-            if (response.IsValid)
-            {
-                string claimType1 = System.Security.Claims.ClaimTypes.NameIdentifier;
-                string claimValue1 = response.UserId ?? "";
-                string claimType2 = System.Security.Claims.ClaimTypes.Email;
-                string claimValue2 = response.Email ?? "";
-                var claims = new List<System.Security.Claims.Claim>
-                {
-                    new System.Security.Claims.Claim(claimType1, claimValue1),
-                    new System.Security.Claims.Claim(claimType2, claimValue2)
-                };
-                var identity = new System.Security.Claims.ClaimsIdentity(claims, "gRPCAuth");
-                context.User = new System.Security.Claims.ClaimsPrincipal(identity);
-            }
-        }
-        catch { /* Invalid token or gRPC error */ }
-    }
-    await next();
-});
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", async (
+    WorkspaceDbContext dbContext,
+    CancellationToken cancellationToken) =>
+{
+    var healthy = await dbContext.Database.CanConnectAsync(cancellationToken);
+    return Results.Json(
+        new
+        {
+            Service = "DiagramManagerService",
+            Status = healthy ? "Healthy" : "Unhealthy",
+            CheckedAtUtc = DateTime.UtcNow
+        },
+        statusCode: healthy
+            ? StatusCodes.Status200OK
+            : StatusCodes.Status503ServiceUnavailable);
+}).AllowAnonymous();
 
 app.MapControllers();
 

@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using UserAuthService.API.Configurations;
 using UserAuthService.API.GrpcServices;
@@ -16,6 +17,7 @@ builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddDependencyInjection();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
 builder.Services.AddGrpc();
@@ -25,19 +27,33 @@ var secretKey = builder.Configuration["Jwt:Secret"] ?? "SuperSecretKeyForJwtAuth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("1");
+    });
+});
+builder.Services.AddHttpClient("AdminHealthChecks", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(2);
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -87,16 +103,23 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", async (
+    UserAuthService.Infrastructure.Persitence.Data.UserAuthServiceDbContext dbContext,
+    CancellationToken cancellationToken) =>
+{
+    var healthy = await dbContext.Database.CanConnectAsync(cancellationToken);
+    return Results.Json(
+        new { Service = "UserAuthService", Status = healthy ? "Healthy" : "Unhealthy", CheckedAtUtc = DateTime.UtcNow },
+        statusCode: healthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+}).AllowAnonymous();
 
 app.MapControllers();
 app.MapGrpcService<AuthGrpcService>();

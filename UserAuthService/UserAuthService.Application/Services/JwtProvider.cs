@@ -20,12 +20,16 @@ namespace UserAuthService.Application.Services
 
         public string GenerateToken(User user)
         {
+            var roleEnum = (UserAuthService.Domain.INum.UserRole)user.Role;
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(ClaimTypes.Email, user.Email),
                 new Claim("fullname", user.Fullname ?? ""),
-                new Claim("role", user.Role.ToString())
+                new Claim("role", user.Role.ToString()),
+                new Claim(ClaimTypes.Role, roleEnum.ToString())
             };
 
             var secret = _configuration["Jwt:Secret"];

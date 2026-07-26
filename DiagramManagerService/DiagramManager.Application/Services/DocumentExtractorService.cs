@@ -62,7 +62,7 @@ namespace DiagramManager.Application.Services
                                 bytes = image.RawBytes.ToArray();
                             }
 
-                            if (bytes != null && bytes.Length > 0)
+                            if (bytes != null && bytes.Length >= 8192)
                             {
                                 list.Add(new ExtractedDiagramDto
                                 {
@@ -107,14 +107,15 @@ namespace DiagramManager.Application.Services
                                     partStream.CopyTo(ms);
                                     var bytes = ms.ToArray();
                                     
-                                    if (bytes.Length > 0)
+                                    // Chỉ trích xuất các ảnh >= 8KB (loại bỏ icon, logo trang trí rác)
+                                    if (bytes.Length >= 8192)
                                     {
                                         list.Add(new ExtractedDiagramDto
                                         {
                                             ImageBytes = bytes,
                                             MimeType = imagePart.ContentType,
                                             Name = $"docx_img_{imageIndex}",
-                                            PageNumber = 1 // Word không phân trang rõ ràng, để tạm trang 1
+                                            PageNumber = 1
                                         });
                                         imageIndex++;
                                     }
