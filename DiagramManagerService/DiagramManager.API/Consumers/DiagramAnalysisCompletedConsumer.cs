@@ -1,8 +1,10 @@
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using DiagramManager.Infrastructure.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Shared.Messaging.Events;
 
@@ -13,11 +15,18 @@ namespace DiagramManager.API.Consumers
         private readonly WorkspaceDbContext _dbContext;
         private readonly ILogger<DiagramAnalysisCompletedConsumer> _logger;
         private readonly IPublishEndpoint _publishEndpoint;
-        public DiagramAnalysisCompletedConsumer(WorkspaceDbContext dbContext, ILogger<DiagramAnalysisCompletedConsumer> logger, IPublishEndpoint publishEndpoint)
+        private readonly IDistributedCache _cache;
+
+        public DiagramAnalysisCompletedConsumer(
+            WorkspaceDbContext dbContext,
+            ILogger<DiagramAnalysisCompletedConsumer> logger,
+            IPublishEndpoint publishEndpoint,
+            IDistributedCache cache)
         {
             _dbContext = dbContext;
             _logger = logger;
             _publishEndpoint = publishEndpoint;
+            _cache = cache;
         }
 
         public async Task Consume(ConsumeContext<DiagramAnalysisCompletedEvent> context)
@@ -43,6 +52,29 @@ namespace DiagramManager.API.Consumers
                 await _dbContext.SaveChangesAsync();
 
                 _logger.LogInformation($"Updated DiagramVersion {evt.VersionId} with AI Status: {diagramVersion.Status}, Score: {evt.Score}");
+
+                // Cache AI Review Result in Redis if fileHash exists
+                if (diagramVersion.Status == "Analyzed")
+                {
+                    string versionHashKey = $"diagram:version_hash:{evt.VersionId}";
+                    string? fileHash = await _cache.GetStringAsync(versionHashKey);
+                    if (!string.IsNullOrEmpty(fileHash))
+                    {
+                        var cachePayload = new
+                        {
+                            score = evt.Score,
+                            reviewData = evt.ReviewData,
+                            diagramType = evt.DiagramType,
+                            cachedAt = DateTime.UtcNow
+                        };
+                        string cacheJson = JsonSerializer.Serialize(cachePayload);
+                        await _cache.SetStringAsync($"diagram:hash:{fileHash}", cacheJson, new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+                        });
+                        _logger.LogInformation($"Cached AI Review result to Redis for FileHash: {fileHash}");
+                    }
+                }
                 // 2. Kiểm tra xem diagram này có thuộc một Document nào không
                 var diagram = await _dbContext.Diagrams.FirstOrDefaultAsync(d => d.Id == diagramVersion.DiagramId);
                 if (diagram != null && diagram.DocumentId.HasValue)
