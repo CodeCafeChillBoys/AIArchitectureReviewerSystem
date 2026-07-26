@@ -144,17 +144,19 @@ namespace AIArchitectureReviewer.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, UpdateSystemRuleDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSystemRuleDto dto)
         {
-            try
-            {
-                await _systemRuleService.UpdateRuleAsync(id, dto);
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                return NotFound();
-            }
+            var result = await _systemRuleService.UpdateRuleAsync(id, dto);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/history")]
+        public async Task<IActionResult> GetHistory(Guid id)
+        {
+            var history = await _systemRuleService.GetHistoryAsync(id);
+            if (history == null) return NotFound();
+            return Ok(history);
         }
 
         [HttpDelete("{id}")]
