@@ -7,6 +7,8 @@ using DiagramManager.API.GrpcClients;
 using Microsoft.EntityFrameworkCore;
 using DiagramManager.API.Authentication;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,9 +53,12 @@ builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IDocumentExtractorService, DocumentExtractorService>();
 builder.Services.AddScoped<IStorageMonitoringService, LocalStorageMonitoringService>();
 
-// Database
-builder.Services.AddDbContext<WorkspaceDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Redis Distributed Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    options.InstanceName = "AIReview_";
+});
 
 // MassTransit / RabbitMQ
 builder.Services.AddMassTransit(x =>
