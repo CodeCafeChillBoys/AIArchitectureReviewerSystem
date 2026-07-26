@@ -21,4 +21,10 @@
     <ProjectReference Include="..\..\DiagramManagerService\Shared.Messaging\Shared.Messaging.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="RAG_Documents\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
