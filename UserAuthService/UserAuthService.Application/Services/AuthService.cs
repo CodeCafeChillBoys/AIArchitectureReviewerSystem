@@ -6,7 +6,6 @@ using UserAuthService.Application.Interfaces;
 using UserAuthService.Application.Validation;
 using UserAuthService.Domain.Entities;
 using UserAuthService.Domain.Interfaces;
-
 namespace UserAuthService.Application.Services;
 
 public partial class AuthService : IAuthService
@@ -94,9 +93,15 @@ public partial class AuthService : IAuthService
         }
 
         // Ensure role exists
-        var roleName = string.IsNullOrWhiteSpace(request.Role) 
-            ? (EmailRoleValidator.IsStudentEmail(request.Email) ? "Student" : "Lecturer")
-            : request.Role;
+        string roleName;
+        if (string.IsNullOrWhiteSpace(request.Role))
+        {
+            roleName = EmailRoleValidator.IsStudentEmail(request.Email) ? "User" : "Admin";
+        }
+        else
+        {
+            roleName = request.Role;
+        }
 
         if (!await _roleManager.RoleExistsAsync(roleName))
         {
