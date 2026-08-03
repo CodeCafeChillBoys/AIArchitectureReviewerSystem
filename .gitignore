@@ -3,3 +3,5 @@
 **/obj/
 *.user
 **/pgdata/
+appsettings.json
+appsettings.*.json
