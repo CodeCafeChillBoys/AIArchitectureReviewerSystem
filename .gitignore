@@ -5,3 +5,10 @@
 **/pgdata/
 appsettings.json
 appsettings.*.json
+
+# Firebase credentials & sensitive keys
+**/Firebase/
+firebase-service-account.json
+*-adminsdk-*.json
+*.pem
+*.pfx

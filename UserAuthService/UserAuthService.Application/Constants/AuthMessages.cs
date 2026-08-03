@@ -9,4 +9,6 @@ public static class AuthMessages
     public const string RegisterSuccess = "User registered successfully.";
     public const string RegisterFailed = "Registration failed.";
     public const string ValidationFailed = "Validation failed.";
+    public const string InvalidGoogleToken = "Invalid Google token.";
+    public const string GoogleEmailNotFound = "Email not found in Google token.";
 }

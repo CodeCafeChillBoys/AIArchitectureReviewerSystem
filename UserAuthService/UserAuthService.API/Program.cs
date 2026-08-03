@@ -7,9 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// API Configurations (Cors & Swagger)
+// API Configurations (Cors, Swagger, Firebase)
 builder.Services.AddCorsConfiguration();
 builder.Services.AddSwaggerConfiguration();
+builder.Services.AddFirebaseConfiguration(builder.Configuration, builder.Environment);
 
 // Clean Architecture layers
 builder.Services.AddApplicationLayer();

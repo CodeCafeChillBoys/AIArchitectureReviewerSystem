@@ -21,7 +21,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
     public string GenerateToken(ApplicationUser user, IList<string> roles)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenHandler = new JwtSecurityTokenHandler(); // là của class của thư viên System.IdentityModel.Tokens.Jwt;
+        // mục đích dùng để đọc jwwt và xác thực
         var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
 
         var claims = new List<Claim>
