@@ -1,3 +1,4 @@
+using UserAuthService.API.Config;
 using UserAuthService.Application;
 using UserAuthService.Infrastructure;
 
@@ -5,26 +6,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// Register Clean Architecture layers
+// API Configurations (Cors & Swagger)
+builder.Services.AddCorsConfiguration();
+builder.Services.AddSwaggerConfiguration();
+
+// Clean Architecture layers
 builder.Services.AddApplicationLayer();
 builder.Services.AddInfrastructureLayer(builder.Configuration);
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    });
-});
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserAuthService API v1");
+        c.RoutePrefix = string.Empty; // Set Swagger UI to load at root URL (http://localhost:5000/)
+    });
 }
 
 app.UseCors("AllowAll");
