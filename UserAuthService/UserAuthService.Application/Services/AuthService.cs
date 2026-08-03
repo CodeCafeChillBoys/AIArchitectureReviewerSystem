@@ -3,12 +3,13 @@ using UserAuthService.Application.Constants;
 using UserAuthService.Application.DTOs.Request;
 using UserAuthService.Application.DTOs.Response;
 using UserAuthService.Application.Interfaces;
+using UserAuthService.Application.Validation;
 using UserAuthService.Domain.Entities;
 using UserAuthService.Domain.Interfaces;
 
 namespace UserAuthService.Application.Services;
 
-public class AuthService : IAuthService
+public partial class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
@@ -93,7 +94,10 @@ public class AuthService : IAuthService
         }
 
         // Ensure role exists
-        var roleName = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role;
+        var roleName = string.IsNullOrWhiteSpace(request.Role) 
+            ? (EmailRoleValidator.IsStudentEmail(request.Email) ? "Student" : "Lecturer")
+            : request.Role;
+
         if (!await _roleManager.RoleExistsAsync(roleName))
         {
             await _roleManager.CreateAsync(new ApplicationRole { Name = roleName });
