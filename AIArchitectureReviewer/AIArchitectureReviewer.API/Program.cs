@@ -1,4 +1,3 @@
-using MassTransit;
 using AIArchitectureReviewer.Application.Interfaces.AI;
 using AIArchitectureReviewer.Application.Interfaces.Repositories;
 using AIArchitectureReviewer.Application.Interfaces.Services;
@@ -24,30 +23,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IApiKeyProvider, AIArchitectureReviewer.Infrastructure.AI.RoundRobinApiKeyProvider>();
 builder.Services.AddHttpClient<IEmbeddingService, EmbeddingService>();
 builder.Services.AddHttpClient<IRAGService, RAGService>();
-
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<AIArchitectureReviewer.API.Consumers.DiagramAnalysisConsumer>();
-    x.AddConsumer<AIArchitectureReviewer.API.Consumers.DocumentConsistencyReviewRequestedConsumer>();
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
-        cfg.Host(rabbitHost, "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-
-        cfg.ReceiveEndpoint("diagram-analysis-queue", e =>
-        {
-            e.ConfigureConsumer<AIArchitectureReviewer.API.Consumers.DiagramAnalysisConsumer>(context);
-        });
-        cfg.ReceiveEndpoint("document-consistency-review-queue", e =>
-        {
-            e.ConfigureConsumer<AIArchitectureReviewer.API.Consumers.DocumentConsistencyReviewRequestedConsumer>(context);
-        });
-    });
-});
 
 builder.Services.AddScoped<IKeywordSearchService, KeywordSearchService>();
 builder.Services.AddScoped<IVectorSearchService, VectorSearchService>();

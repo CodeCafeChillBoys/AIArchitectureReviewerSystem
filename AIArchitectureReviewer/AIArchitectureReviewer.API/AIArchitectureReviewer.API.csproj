@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -18,7 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AIArchitectureReviewer.Application\AIArchitectureReviewer.Application.csproj" />
     <ProjectReference Include="..\AIArchitectureReviewer.Infrastructure\AIArchitectureReviewer.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\DiagramManagerService\Shared.Messaging\Shared.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>
