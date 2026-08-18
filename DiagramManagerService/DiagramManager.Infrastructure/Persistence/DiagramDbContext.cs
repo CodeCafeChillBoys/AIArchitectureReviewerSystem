@@ -54,7 +54,9 @@ public class DiagramDbContext : DbContext
             entity.HasKey(dv => dv.Id);
             entity.Property(dv => dv.StorageUrl).IsRequired().HasMaxLength(500);
             entity.Property(dv => dv.RawFormat).HasMaxLength(100);
-            entity.Property(dv => dv.Status).HasMaxLength(50);
+            entity.Property(dv => dv.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
             entity.Property(dv => dv.UploadedAt).HasConversion(
                 v => v.ToUniversalTime(),
                 v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
@@ -71,7 +73,9 @@ public class DiagramDbContext : DbContext
             entity.ToTable("DIAGRAM_SHARES");
             entity.HasKey(ds => ds.Id);
             entity.Property(ds => ds.SharedWithUserId).IsRequired();
-            entity.Property(ds => ds.PermissionLevel).HasMaxLength(50);
+            entity.Property(ds => ds.PermissionLevel)
+                .HasConversion<string>()
+                .HasMaxLength(50);
 
             entity.HasOne(ds => ds.Diagram)
                 .WithMany(d => d.DiagramShares)
