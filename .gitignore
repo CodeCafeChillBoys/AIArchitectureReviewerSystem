@@ -1,13 +1,15 @@
 .env
 **/bin/
 **/obj/
+**/.vs/
 *.user
 **/pgdata/
 appsettings.json
 appsettings.*.json
 
-# Firebase & Secret files
+# Firebase credentials & sensitive keys
+**/Firebase/
 firebase-service-account.json
-firebase-service-account*.json
-**/Firebase/*.json
-*.json.secret
+*-adminsdk-*.json
+*.pem
+*.pfx
