@@ -151,14 +151,6 @@ namespace AIArchitectureReviewer.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}/history")]
-        public async Task<IActionResult> GetHistory(Guid id)
-        {
-            var history = await _systemRuleService.GetHistoryAsync(id);
-            if (history == null) return NotFound();
-            return Ok(history);
-        }
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

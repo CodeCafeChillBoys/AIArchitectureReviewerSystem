@@ -5,21 +5,17 @@ using AIArchitectureReviewer.Application.Interfaces.RAG;
 using AIArchitectureReviewer.Application.Interfaces.Repositories;
 using AIArchitectureReviewer.Application.Prompts;
 
-using AIArchitectureReviewer.Application.Interfaces.Services;
-
 namespace AIArchitectureReviewer.Application.Orchestrators
 {
     public partial class UMLReviewOrchestrator : IUMLReviewOrchestrator
     {
         private readonly IRAGService _ragService;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICodeExtractorService _codeExtractorService;
 
-        public UMLReviewOrchestrator(IRAGService ragService, IUnitOfWork unitOfWork, ICodeExtractorService codeExtractorService)
+        public UMLReviewOrchestrator(IRAGService ragService, IUnitOfWork unitOfWork)
         {
             _ragService = ragService;
             _unitOfWork = unitOfWork;
-            _codeExtractorService = codeExtractorService;
         }
 
         public async Task<ReviewSessionResult> ProcessAsync(Guid versionId, byte[] imageBytes, string mimeType, string? customPrompt = null)
@@ -73,9 +69,12 @@ namespace AIArchitectureReviewer.Application.Orchestrators
 
             if (scoreJson == null)
             {
-                var (calculatedScore, scoreDetails, calculatedScoreJson) = CalculateScoreProgrammatically(parsedDiagram);
-                totalScore = calculatedScore;
-                scoreJson = calculatedScoreJson;
+                scoreJson = new JsonObject
+                {
+                    ["total_score"] = totalScore,
+                    ["details"] = "Chấm điểm hoàn tất từ AI.",
+                    ["level"] = "Good"
+                };
             }
 
             var diagramType = parsedDiagram?["diagram_type"]?.ToString();

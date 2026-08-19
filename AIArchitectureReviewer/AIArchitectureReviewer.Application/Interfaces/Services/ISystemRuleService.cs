@@ -10,8 +10,7 @@ namespace AIArchitectureReviewer.Application.Interfaces.Services
         Task<SystemRuleDto?> GetRuleByIdAsync(Guid id);
         Task<IEnumerable<SystemRuleDto>> GetAllRulesAsync();
         Task<SystemRuleDto> CreateRuleAsync(CreateSystemRuleDto dto);
-        Task<ChangeSetDto?> UpdateRuleAsync(Guid id, UpdateSystemRuleDto dto);
-        Task<IEnumerable<ChangeHistoryEntryDto>?> GetHistoryAsync(Guid id);
+        Task<SystemRuleDto?> UpdateRuleAsync(Guid id, UpdateSystemRuleDto dto);
         Task DeleteRuleAsync(Guid id);
         Task ClearAllRulesAsync();
     }

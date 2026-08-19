@@ -21,53 +21,6 @@ namespace AIArchitectureReviewer.Infrastructure.RAG
             _model = configuration["Gemini:Model"] ?? "gemini-2.5-pro";
         }
 
-        //         public async Task<string> AnswerQuestionAsync(string question, int contextTopK = 5)
-        //         {
-        //             // 1. Retrieve context using Hybrid Search
-        //             var searchResults = await _hybridSearchService.SearchHybridAsync(question, contextTopK);
-
-        //             var contextBuilder = new StringBuilder();
-        //             foreach (var result in searchResults)
-        //             {
-        //                 contextBuilder.AppendLine($"- {result.Content}");
-        //             }
-
-        //             var contextString = contextBuilder.ToString();
-
-        //             // 2. Build the System Prompt and request payload
-        //             var systemPrompt = @"Bạn là một chuyên gia phân tích kiến trúc phần mềm và trợ lý AI.
-        // CHỈ trả lời dựa trên thông tin trong thẻ <context> được cung cấp dưới đây.
-        // Tuyệt đối KHÔNG sử dụng kiến thức bên ngoài. Nếu thông tin không có trong <context>, hãy từ chối trả lời và nói rằng câu hỏi nằm ngoài phạm vi dữ liệu.";
-
-        //             var fullPrompt = $"{systemPrompt}\n\n<context>\n{contextString}\n</context>\n\nCâu hỏi: {question}";
-
-        //             var payload = new
-        //             {
-        //                 contents = new[]
-        //                 {
-        //                     new
-        //                     {
-        //                         parts = new[] { new { text = fullPrompt } }
-        //                     }
-        //                 }
-        //             };
-
-        //             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKeyProvider.GetNextApiKey()}";
-        //             var jsonPayload = JsonSerializer.Serialize(payload);
-        //             var response = await PostWithRetryAsync(url, jsonPayload);
-
-        //             var responseString = await response.Content.ReadAsStringAsync();
-        //             using var document = JsonDocument.Parse(responseString);
-
-        //             // Expected response format: { "candidates": [ { "content": { "parts": [ { "text": "..." } ] } } ] }
-        //             var textElement = document.RootElement
-        //                 .GetProperty("candidates")[0]
-        //                 .GetProperty("content")
-        //                 .GetProperty("parts")[0]
-        //                 .GetProperty("text");
-
-        //             return textElement.GetString() ?? string.Empty;
-        //         }
 
         public async Task<string> GetRawContextAsync(string question, int contextTopK = 5)
         {
