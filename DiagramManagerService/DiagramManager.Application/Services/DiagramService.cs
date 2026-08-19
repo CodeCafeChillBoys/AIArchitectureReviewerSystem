@@ -3,22 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DiagramManager.Application.Constants;
+using DiagramManager.Application.DTOs.Events;
 using DiagramManager.Application.DTOs.Request;
 using DiagramManager.Application.DTOs.Response;
 using DiagramManager.Application.Interfaces;
 using DiagramManager.Domain.Entities;
 using DiagramManager.Domain.Enums;
 using DiagramManager.Domain.Interfaces;
-
+using MassTransit;
 namespace DiagramManager.Application.Services
 {
     public class DiagramService : IDiagramService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public DiagramService(IUnitOfWork unitOfWork)
+        public DiagramService(IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint)
         {
             _unitOfWork = unitOfWork;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<ApiResponse<DiagramResponseDto>> CreateMermaidDiagramAsync(CreateMermaidDiagramRequestDto request, CancellationToken cancellationToken = default)
@@ -54,12 +57,22 @@ namespace DiagramManager.Application.Services
                 DiagramId = diagram.Id,
                 VersionNumber = 1,
                 StorageUrl = storageUrl,
-                RawFormat = "mermaid", // Đánh dấu đây là sơ đồ dạng Mermaid!
-                Status = DiagramVersionStatus.Completed
+                RawFormat = "mermaid",
+                Status = DiagramVersionStatus.Pending
             };
             var versionRepo = _unitOfWork.Repository<DiagramVersion>();
             await versionRepo.AddAsync(version, cancellationToken);
             await _unitOfWork.CompleteAsync(cancellationToken);
+
+            await _publishEndpoint.Publish(new DiagramProcessingRequestEvent
+            {
+                DiagramId = diagram.Id,
+                DiagramVersionId = version.Id,
+                DiagramType = diagram.DiagramType,
+                RawFormat = "mermaid",
+                StorageUrl = filePath,
+                ContentText = request.MermaidCode
+            }, cancellationToken);
             // 4. Trả về Response
             var responseDto = new DiagramResponseDto
             {
@@ -184,6 +197,14 @@ namespace DiagramManager.Application.Services
             await versionRepo.AddAsync(version, cancellationToken);
             await _unitOfWork.CompleteAsync(cancellationToken);
 
+            await _publishEndpoint.Publish(new DiagramProcessingRequestEvent
+            {
+                DiagramId = diagram.Id,
+                DiagramVersionId = version.Id,
+                DiagramType = diagram.DiagramType,
+                RawFormat = rawFormat,
+                StorageUrl = filePath
+            }, cancellationToken);
             var responseDto = new DiagramResponseDto
             {
                 Id = diagram.Id,

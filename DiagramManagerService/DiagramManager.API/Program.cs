@@ -1,3 +1,4 @@
+using DiagramManager.API.Config;
 using DiagramManager.Application;
 using DiagramManager.Infrastructure;
 
@@ -10,6 +11,8 @@ builder.Services.AddSwaggerGen();
 // Register Clean Architecture layers
 builder.Services.AddApplicationLayer();
 builder.Services.AddInfrastructureLayer(builder.Configuration);
+builder.Services.AddMassTransitConfig(builder.Configuration);
+
 
 builder.Services.AddCors(options =>
 {
