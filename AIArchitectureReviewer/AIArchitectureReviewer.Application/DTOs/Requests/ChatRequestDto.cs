@@ -1,4 +1,4 @@
-namespace AIArchitectureReviewer.Application.DTOs
+namespace AIArchitectureReviewer.Application.DTOs.Requests
 {
     public class ChatRequestDto
     {

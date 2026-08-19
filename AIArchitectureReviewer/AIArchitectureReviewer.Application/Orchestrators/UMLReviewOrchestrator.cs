@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 using AIArchitectureReviewer.Application.Interfaces.Orchestrators;
 using AIArchitectureReviewer.Application.Interfaces.RAG;
 using AIArchitectureReviewer.Application.Interfaces.Repositories;

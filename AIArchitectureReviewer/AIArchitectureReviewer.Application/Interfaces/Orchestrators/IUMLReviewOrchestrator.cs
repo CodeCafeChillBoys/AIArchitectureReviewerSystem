@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 
 namespace AIArchitectureReviewer.Application.Interfaces.Orchestrators
 {

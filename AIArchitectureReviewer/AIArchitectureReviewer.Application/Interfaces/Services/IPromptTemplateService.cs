@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 namespace AIArchitectureReviewer.Application.Interfaces.Services
 {
     public interface IPromptTemplateService

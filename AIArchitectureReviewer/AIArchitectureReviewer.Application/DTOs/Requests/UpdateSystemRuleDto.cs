@@ -1,4 +1,4 @@
-namespace AIArchitectureReviewer.Application.DTOs
+namespace AIArchitectureReviewer.Application.DTOs.Requests
 {
     /// <summary>
     /// Field null nghĩa là client không gửi, giữ nguyên giá trị hiện có.

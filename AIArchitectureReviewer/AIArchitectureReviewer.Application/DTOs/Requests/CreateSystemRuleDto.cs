@@ -1,10 +1,7 @@
-using System;
-
-namespace AIArchitectureReviewer.Application.DTOs
+namespace AIArchitectureReviewer.Application.DTOs.Requests
 {
-    public class SystemRuleDto
+    public class CreateSystemRuleDto
     {
-        public Guid Id { get; set; }
         public string DiagramType { get; set; } = string.Empty;
         public string RuleName { get; set; } = string.Empty;
         public string RegexOrCondition { get; set; } = string.Empty;

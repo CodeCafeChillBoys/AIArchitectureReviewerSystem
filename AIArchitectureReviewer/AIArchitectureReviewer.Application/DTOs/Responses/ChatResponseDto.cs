@@ -1,6 +1,6 @@
 using System;
 
-namespace AIArchitectureReviewer.Application.DTOs
+namespace AIArchitectureReviewer.Application.DTOs.Responses
 {
     public class ChatResponseDto
     {

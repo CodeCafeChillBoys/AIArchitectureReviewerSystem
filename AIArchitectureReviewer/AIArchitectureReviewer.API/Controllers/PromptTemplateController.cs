@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using AIArchitectureReviewer.Application.Interfaces.Services;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 
 namespace AIArchitectureReviewer.API.Controllers
 {

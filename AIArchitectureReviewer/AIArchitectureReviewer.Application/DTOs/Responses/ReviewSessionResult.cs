@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace AIArchitectureReviewer.Application.DTOs
+namespace AIArchitectureReviewer.Application.DTOs.Responses
 {
     public class ReviewSessionResult
     {

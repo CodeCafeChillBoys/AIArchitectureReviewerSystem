@@ -1,4 +1,5 @@
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 using AIArchitectureReviewer.Application.Interfaces.Repositories;
 using AIArchitectureReviewer.Application.Interfaces.Services;
 using AIArchitectureReviewer.Application.Interfaces.Search;

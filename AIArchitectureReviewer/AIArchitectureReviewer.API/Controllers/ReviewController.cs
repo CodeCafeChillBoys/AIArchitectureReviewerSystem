@@ -1,6 +1,8 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 using AIArchitectureReviewer.Application.Interfaces.Orchestrators;
 using AIArchitectureReviewer.Domain.Entities;
 using AIArchitectureReviewer.Infrastructure.Data;
@@ -33,7 +35,7 @@ namespace AIArchitectureReviewer.API.Controllers
         }
 
         [HttpPost("{sessionId}/chat")]
-        public async Task<IActionResult> Chat(System.Guid sessionId, [FromBody] AIArchitectureReviewer.Application.DTOs.ChatRequestDto request)
+        public async Task<IActionResult> Chat(System.Guid sessionId, [FromBody] ChatRequestDto request)
         {
             if (string.IsNullOrWhiteSpace(request?.Message))
                 return BadRequest("Message cannot be empty.");
