@@ -363,5 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Secrets and environment-specific configs
-[Aa]ppsettings.Development.json
-[Aa]ppsettings.local.json
+[Aa]ppsettings*.json
