@@ -16,8 +16,6 @@ namespace AIArchitectureReviewer.Infrastructure.Data
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
         public DbSet<ConsistencyReport> ConsistencyReports { get; set; } = null!;
         public DbSet<PromptTemplate> PromptTemplates { get; set; }
-        public DbSet<PromptTemplateHistory> PromptTemplateHistories { get; set; } = null!;
-        public DbSet<SystemRuleHistory> SystemRuleHistories { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -46,27 +44,6 @@ namespace AIArchitectureReviewer.Infrastructure.Data
                 .HasOne(m => m.ChatSession)
                 .WithMany(s => s.Messages)
                 .HasForeignKey(m => m.ChatSessionId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PromptTemplateHistory>().ToTable("PROMPT_TEMPLATE_HISTORY");
-            modelBuilder.Entity<SystemRuleHistory>().ToTable("SYSTEM_RULE_HISTORY");
-
-            modelBuilder.Entity<PromptTemplateHistory>()
-                .HasIndex(h => new { h.PromptTemplateId, h.ChangedAt });
-
-            modelBuilder.Entity<SystemRuleHistory>()
-                .HasIndex(h => new { h.SystemRuleId, h.ChangedAt });
-
-            modelBuilder.Entity<PromptTemplateHistory>()
-                .HasOne(h => h.PromptTemplate)
-                .WithMany()
-                .HasForeignKey(h => h.PromptTemplateId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<SystemRuleHistory>()
-                .HasOne(h => h.SystemRule)
-                .WithMany()
-                .HasForeignKey(h => h.SystemRuleId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

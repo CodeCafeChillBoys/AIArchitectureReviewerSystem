@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 using AIArchitectureReviewer.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -149,14 +150,6 @@ namespace AIArchitectureReviewer.API.Controllers
             var result = await _systemRuleService.UpdateRuleAsync(id, dto);
             if (result == null) return NotFound();
             return Ok(result);
-        }
-
-        [HttpGet("{id}/history")]
-        public async Task<IActionResult> GetHistory(Guid id)
-        {
-            var history = await _systemRuleService.GetHistoryAsync(id);
-            if (history == null) return NotFound();
-            return Ok(history);
         }
 
         [HttpDelete("{id}")]

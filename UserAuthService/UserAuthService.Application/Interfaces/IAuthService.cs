@@ -1,13 +1,16 @@
-using System;
-using System.Threading.Tasks;
-using UserAuthService.Application.DTOs;
+using Microsoft.AspNetCore.Identity.Data;
+using UserAuthService.Application.DTOs.Request;
+using UserAuthService.Application.DTOs.Response;
+using LoginRequest = UserAuthService.Application.DTOs.Request.LoginRequest;
+using RegisterRequest = UserAuthService.Application.DTOs.Request.RegisterRequest;
 
-namespace UserAuthService.Application.Interfaces
+namespace UserAuthService.Application.Interfaces;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        Task<AuthResponseDto> LoginAsync(LoginRequestDto request);
-        Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request);
-        Task<ProfileResponseDto> GetProfileAsync(Guid userId);
-    }
+    Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request);
+    Task<ApiResponse<RegisterResponse>> RegisterAsync(RegisterRequest request);
+    Task<ApiResponse<LoginResponse>> GoogleLoginAsync(GoogleLoginRequest request);
+
 }
+

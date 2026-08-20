@@ -1,19 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="INum\" />
-    <Folder Include="IRepository\" />
-    <Folder Include="IUnitOfWork\" />
-    <Folder Include="IUseCase\" />
-    <Folder Include="MessageHelper\" />
-    <Folder Include="ReponseModel\" />
-    <Folder Include="RequestModel\" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
