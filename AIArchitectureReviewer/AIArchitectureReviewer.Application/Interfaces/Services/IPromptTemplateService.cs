@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 namespace AIArchitectureReviewer.Application.Interfaces.Services
 {
     public interface IPromptTemplateService
@@ -11,8 +12,7 @@ namespace AIArchitectureReviewer.Application.Interfaces.Services
         Task<IEnumerable<PromptTemplateDto>> GetAllAsync();
         Task<PromptTemplateDto> GetByIdAsync(Guid id);
         Task<PromptTemplateDto> CreateAsync(CreatePromptTemplateDto dto);
-        Task<ChangeSetDto?> UpdateAsync(Guid id, UpdatePromptTemplateDto dto);
-        Task<IEnumerable<ChangeHistoryEntryDto>?> GetHistoryAsync(Guid id);
+        Task<PromptTemplateDto?> UpdateAsync(Guid id, UpdatePromptTemplateDto dto);
         Task<bool> DeleteAsync(Guid id);
     }
 }

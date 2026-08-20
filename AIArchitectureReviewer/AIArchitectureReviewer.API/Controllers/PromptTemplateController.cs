@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using AIArchitectureReviewer.Application.Interfaces.Services;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 
 namespace AIArchitectureReviewer.API.Controllers
 {
@@ -41,14 +42,6 @@ namespace AIArchitectureReviewer.API.Controllers
             var result = await _promptService.UpdateAsync(id, dto);
             if (result == null) return NotFound();
             return Ok(result);
-        }
-
-        [HttpGet("{id}/history")]
-        public async Task<IActionResult> GetHistory(Guid id)
-        {
-            var history = await _promptService.GetHistoryAsync(id);
-            if (history == null) return NotFound();
-            return Ok(history);
         }
 
         [HttpDelete("{id}")]

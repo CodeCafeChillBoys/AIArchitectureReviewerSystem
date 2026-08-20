@@ -3,7 +3,6 @@ WORKDIR /src
 COPY ["AIArchitectureReviewer/AIArchitectureReviewer.API/AIArchitectureReviewer.API.csproj", "AIArchitectureReviewer/AIArchitectureReviewer.API/"]
 COPY ["AIArchitectureReviewer/AIArchitectureReviewer.Application/AIArchitectureReviewer.Application.csproj", "AIArchitectureReviewer/AIArchitectureReviewer.Application/"]
 COPY ["AIArchitectureReviewer/AIArchitectureReviewer.Infrastructure/AIArchitectureReviewer.Infrastructure.csproj", "AIArchitectureReviewer/AIArchitectureReviewer.Infrastructure/"]
-COPY ["DiagramManagerService/Shared.Messaging/Shared.Messaging.csproj", "DiagramManagerService/Shared.Messaging/"]
 RUN dotnet restore "AIArchitectureReviewer/AIArchitectureReviewer.API/AIArchitectureReviewer.API.csproj"
 COPY . .
 WORKDIR "/src/AIArchitectureReviewer/AIArchitectureReviewer.API"

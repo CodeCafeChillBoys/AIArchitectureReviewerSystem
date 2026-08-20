@@ -1,19 +1,16 @@
-using System;
+using DiagramManager.Domain.Common;
+using DiagramManager.Domain.Enums;
 
-namespace DiagramManager.Domain.Entities
+namespace DiagramManager.Domain.Entities;
+
+public class DiagramVersion : BaseEntity
 {
-    public class DiagramVersion
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public Guid DiagramId { get; set; }
-        public int VersionNumber { get; set; }
-        public string StorageUrl { get; set; } = string.Empty;
-        public string RawFormat { get; set; } = string.Empty;
-        public string Status { get; set; } = "Uploaded";
-        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
-        public float? AiScore { get; set; }
-        public string? AiReview { get; set; }
-        public string? DiagramType { get; set; }
-        public Diagram? Diagram { get; set; }
-    }
+    public Guid DiagramId { get; set; }
+    public int VersionNumber { get; set; }
+    public string StorageUrl { get; set; } = string.Empty;
+    public string RawFormat { get; set; } = string.Empty;
+    public DiagramVersionStatus Status { get; set; } = DiagramVersionStatus.Pending;
+    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+
+    public Diagram? Diagram { get; set; }
 }

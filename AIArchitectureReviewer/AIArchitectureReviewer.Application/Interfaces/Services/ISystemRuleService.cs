@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AIArchitectureReviewer.Application.DTOs;
+using AIArchitectureReviewer.Application.DTOs.Requests;
+using AIArchitectureReviewer.Application.DTOs.Responses;
 
 namespace AIArchitectureReviewer.Application.Interfaces.Services
 {
@@ -10,8 +11,7 @@ namespace AIArchitectureReviewer.Application.Interfaces.Services
         Task<SystemRuleDto?> GetRuleByIdAsync(Guid id);
         Task<IEnumerable<SystemRuleDto>> GetAllRulesAsync();
         Task<SystemRuleDto> CreateRuleAsync(CreateSystemRuleDto dto);
-        Task<ChangeSetDto?> UpdateRuleAsync(Guid id, UpdateSystemRuleDto dto);
-        Task<IEnumerable<ChangeHistoryEntryDto>?> GetHistoryAsync(Guid id);
+        Task<SystemRuleDto?> UpdateRuleAsync(Guid id, UpdateSystemRuleDto dto);
         Task DeleteRuleAsync(Guid id);
         Task ClearAllRulesAsync();
     }
