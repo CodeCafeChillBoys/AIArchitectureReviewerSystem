@@ -11,22 +11,20 @@ import CreateWorkspaceModal from '../components/dashboard/CreateWorkspaceModal';
 export default function DashboardPage() {
   const navigate = useNavigate();
 
-  // State danh sách Workspace và trạng thái tải
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  // State Modal Tạo Workspace
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
-  // 1. Tải danh sách Workspaces từ API
+  // 1. Fetch workspaces
   const fetchWorkspaces = async () => {
     const currentUserId = authService.getUserId();
     if (!currentUserId) {
-      setError('Vui lòng đăng nhập để xem danh sách Workspace.');
+      setError('Please log in to view your workspaces.');
       setLoading(false);
       setWorkspaces([]);
       return;
@@ -51,7 +49,7 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error('API Workspaces error:', err);
-      setError(err.response?.data?.message || err.message || 'Không thể tải danh sách Workspace.');
+      setError(err.response?.data?.message || err.message || 'Failed to load workspaces.');
       setWorkspaces([]);
     } finally {
       setLoading(false);
@@ -62,11 +60,11 @@ export default function DashboardPage() {
     fetchWorkspaces();
   }, []);
 
-  // 2. Tạo Workspace mới
+  // 2. Create workspace
   const handleCreateWorkspace = async (name, onSuccess) => {
     const currentUserId = authService.getUserId();
     if (!currentUserId) {
-      setCreateError('Vui lòng đăng nhập để tạo Workspace.');
+      setCreateError('Please log in to create a workspace.');
       return;
     }
 
@@ -84,26 +82,43 @@ export default function DashboardPage() {
         setIsModalOpen(false);
         await fetchWorkspaces();
       } else {
-        setCreateError(res?.message || 'Không thể tạo workspace.');
+        setCreateError(res?.message || 'Failed to create workspace.');
       }
     } catch (err) {
-      setCreateError(err.response?.data?.message || err.message || 'Lỗi khi gọi API tạo Workspace.');
+      setCreateError(err.response?.data?.message || err.message || 'Error creating workspace.');
     } finally {
       setCreating(false);
     }
   };
 
-  // Lọc theo từ khóa tìm kiếm
-  const filteredWorkspaces = workspaces.filter((ws) =>
-    (ws.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [sortBy, setSortBy] = useState('newest');
+
+  // Sort workspaces
+  const sortedWorkspaces = [...workspaces].sort((a, b) => {
+    if (sortBy === 'newest') {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    }
+    if (sortBy === 'oldest') {
+      return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+    }
+    if (sortBy === 'name_asc') {
+      return (a.name || '').localeCompare(b.name || '');
+    }
+    if (sortBy === 'name_desc') {
+      return (b.name || '').localeCompare(a.name || '');
+    }
+    return 0;
+  });
 
   return (
     <div style={{ padding: '32px 28px' }}>
-      {/* 1. Header Toolbar (Tiêu đề, Search, Nút New) */}
+      {/* 1. Header Toolbar */}
       <DashboardHeader
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        totalCount={workspaces.length}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        onRefresh={fetchWorkspaces}
+        loading={loading}
         onOpenCreateModal={() => {
           setCreateError('');
           setIsModalOpen(true);
@@ -122,7 +137,7 @@ export default function DashboardPage() {
           fontSize: '14px',
         }}>
           <Loader2 size={20} className="animate-spin" color="var(--accent-primary)" />
-          <span>Đang tải danh sách Workspaces từ server...</span>
+          <span>Loading workspaces from server...</span>
         </div>
       )}
 
@@ -144,22 +159,21 @@ export default function DashboardPage() {
             <span>{error}</span>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={fetchWorkspaces}>
-            Thử lại
+            Retry
           </button>
         </div>
       )}
 
-      {/* 4. Danh sách Grid Workspace hoặc Empty State */}
+      {/* 4. Workspace Grid or Empty State */}
       {!loading && (
         <WorkspaceGrid
-          workspaces={filteredWorkspaces}
-          searchTerm={searchTerm}
+          workspaces={sortedWorkspaces}
           onOpenCreateModal={() => setIsModalOpen(true)}
           onSelectWorkspace={(id) => navigate(`/workspace/${id}`)}
         />
       )}
 
-      {/* 5. Modal Tạo Workspace */}
+      {/* 5. Create Workspace Modal */}
       <CreateWorkspaceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

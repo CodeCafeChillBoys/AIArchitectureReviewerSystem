@@ -26,7 +26,7 @@ export default function AuthTabs({ activeTab, onTabChange }) {
           boxShadow: activeTab === 'login' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
         }}
       >
-        Đăng nhập
+        Sign In
       </button>
       <button
         type="button"
@@ -45,7 +45,7 @@ export default function AuthTabs({ activeTab, onTabChange }) {
           boxShadow: activeTab === 'register' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
         }}
       >
-        Đăng ký
+        Sign Up
       </button>
     </div>
   );

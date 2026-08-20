@@ -3,7 +3,7 @@ import { X, Loader2 } from 'lucide-react';
 
 export default function CreateWorkspaceModal({ isOpen, onClose, onCreate, creating, error }) {
   const [name, setName] = useState('');
-
+  
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
@@ -34,7 +34,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate, creati
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            Tạo Workspace Mới
+            Create New Workspace
           </h3>
           <button
             type="button"
@@ -70,12 +70,12 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate, creati
               color: 'var(--text-secondary)',
               marginBottom: '6px',
             }}>
-              Tên Workspace
+              Workspace Name
             </label>
             <input
               type="text"
               className="input-text"
-              placeholder="Ví dụ: Microservices Payment Architecture"
+              placeholder="e.g. Microservices Payment Architecture"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
@@ -90,7 +90,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate, creati
               onClick={onClose}
               disabled={creating}
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
@@ -100,10 +100,10 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate, creati
               {creating ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />
-                  <span>Đang tạo...</span>
+                  <span>Creating...</span>
                 </>
               ) : (
-                <span>Tạo Workspace</span>
+                <span>Create Workspace</span>
               )}
             </button>
           </div>

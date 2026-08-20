@@ -2,22 +2,13 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
-  FolderKanban,
-  GitFork,
-  Sparkles,
   Settings,
-  Boxes,
-  Plus,
   FileText,
   HelpCircle,
 } from 'lucide-react';
 
-
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Workspaces', path: '/workspace/1', icon: FolderKanban },
-  { name: 'Diagram Editor', path: '/editor', icon: GitFork },
-  { name: 'AI Reviewer', path: '/review', icon: Sparkles },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
@@ -39,24 +30,12 @@ export default function Sidebar() {
         />
         <div className="sidebar-title">
           AI Diagram
-          <span>Grading System</span>
+          <span>Review System</span>
         </div>
       </NavLink>
 
-      {/* 2. Nút bấm tạo mới nhanh */}
-      <div style={{ marginBottom: '20px' }}>
-        <button
-          className="btn btn-primary"
-          style={{ width: '100%', padding: '10px' }}
-          onClick={() => window.location.href = '/editor'}
-        >
-          <Plus size={16} />
-          <span>New Diagram</span>
-        </button>
-      </div>
-
-      {/* 3. Danh sách Menu điều hướng */}
-      <nav className="nav-section">
+      {/* 2. Danh sách Menu điều hướng */}
+      <nav className="nav-section" style={{ marginTop: '16px' }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

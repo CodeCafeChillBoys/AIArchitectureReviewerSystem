@@ -17,14 +17,14 @@ export default function RegisterForm({ onSubmit, loading }) {
       {/* Full Name */}
       <div>
         <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-          Họ và tên
+          Full Name
         </label>
         <div style={{ position: 'relative' }}>
           <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
             type="text"
             className="input-text"
-            placeholder="Nguyễn Văn A"
+            placeholder="John Doe"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             style={{ paddingLeft: '36px' }}
@@ -36,7 +36,7 @@ export default function RegisterForm({ onSubmit, loading }) {
       {/* Email */}
       <div>
         <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-          Địa chỉ Email
+          Email Address
         </label>
         <div style={{ position: 'relative' }}>
           <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -55,7 +55,7 @@ export default function RegisterForm({ onSubmit, loading }) {
       {/* Password */}
       <div>
         <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-          Mật khẩu
+          Password
         </label>
         <div style={{ position: 'relative' }}>
           <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -97,11 +97,11 @@ export default function RegisterForm({ onSubmit, loading }) {
         {loading ? (
           <>
             <Loader2 size={16} className="animate-spin" />
-            <span>Đang tạo tài khoản...</span>
+            <span>Creating account...</span>
           </>
         ) : (
           <>
-            <span>Tạo tài khoản</span>
+            <span>Create Account</span>
             <ArrowRight size={16} />
           </>
         )}

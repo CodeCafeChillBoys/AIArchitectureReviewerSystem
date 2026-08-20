@@ -16,7 +16,7 @@ export default function LoginForm({ onSubmit, loading }) {
       {/* Email */}
       <div>
         <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-          Địa chỉ Email
+          Email Address
         </label>
         <div style={{ position: 'relative' }}>
           <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -36,10 +36,10 @@ export default function LoginForm({ onSubmit, loading }) {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
           <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>
-            Mật khẩu
+            Password
           </label>
           <a href="#forgot" style={{ fontSize: '12px', color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 500 }}>
-            Quên mật khẩu?
+            Forgot password?
           </a>
         </div>
         <div style={{ position: 'relative' }}>
@@ -82,11 +82,11 @@ export default function LoginForm({ onSubmit, loading }) {
         {loading ? (
           <>
             <Loader2 size={16} className="animate-spin" />
-            <span>Đang đăng nhập...</span>
+            <span>Signing in...</span>
           </>
         ) : (
           <>
-            <span>Đăng nhập ngay</span>
+            <span>Sign In</span>
             <ArrowRight size={16} />
           </>
         )}

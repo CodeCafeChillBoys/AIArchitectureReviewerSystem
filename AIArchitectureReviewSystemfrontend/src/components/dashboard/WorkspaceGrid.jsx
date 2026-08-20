@@ -4,14 +4,12 @@ import EmptyWorkspaceState from './EmptyWorkspaceState';
 
 export default function WorkspaceGrid({
   workspaces,
-  searchTerm,
   onOpenCreateModal,
   onSelectWorkspace,
 }) {
   if (workspaces.length === 0) {
     return (
       <EmptyWorkspaceState
-        searchTerm={searchTerm}
         onOpenCreateModal={onOpenCreateModal}
       />
     );

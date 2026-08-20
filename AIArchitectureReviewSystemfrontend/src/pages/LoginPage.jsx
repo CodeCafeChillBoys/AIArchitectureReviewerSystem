@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Xử lý Đăng nhập
+  // Handle Login
   const handleLogin = async ({ email, password }) => {
     setErrorMessage('');
     setSuccessMessage('');
@@ -30,17 +30,17 @@ export default function LoginPage() {
       if (response && response.success) {
         navigate('/dashboard');
       } else {
-        setErrorMessage(response?.message || 'Đăng nhập không thành công.');
+        setErrorMessage(response?.message || 'Login failed. Please check credentials.');
       }
     } catch (error) {
-      const msg = error.response?.data?.message || error.message || 'Lỗi kết nối máy chủ.';
+      const msg = error.response?.data?.message || error.message || 'Server connection error.';
       setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Xử lý Đăng ký
+  // Handle Register
   const handleRegister = async ({ fullName, email, password }) => {
     setErrorMessage('');
     setSuccessMessage('');
@@ -49,13 +49,13 @@ export default function LoginPage() {
       setLoading(true);
       const response = await authService.register(email, password, fullName);
       if (response && response.success) {
-        setSuccessMessage('Đăng ký tài khoản thành công! Hãy chuyển sang đăng nhập.');
+        setSuccessMessage('Registration successful! Please log in.');
         setMode('login');
       } else {
-        setErrorMessage(response?.message || 'Đăng ký không thành công.');
+        setErrorMessage(response?.message || 'Registration failed.');
       }
     } catch (error) {
-      const msg = error.response?.data?.message || error.message || 'Lỗi kết nối máy chủ.';
+      const msg = error.response?.data?.message || error.message || 'Server connection error.';
       setErrorMessage(msg);
     } finally {
       setLoading(false);
@@ -80,16 +80,16 @@ export default function LoginPage() {
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03)',
         padding: '36px 32px',
       }}>
-        {/* 1. Header (Logo & Tiêu đề) */}
+        {/* 1. Header */}
         <AuthHeader
           subtitle={
             mode === 'login'
-              ? 'Đăng nhập vào hệ thống review kiến trúc tự động'
-              : 'Tạo tài khoản mới để bắt đầu thiết kế sơ đồ'
+              ? 'Sign in to access your architecture review dashboard'
+              : 'Create a new account to start reviewing diagrams'
           }
         />
 
-        {/* 2. Tabs chuyển đổi Đăng nhập / Đăng ký */}
+        {/* 2. Tabs */}
         <AuthTabs
           activeTab={mode}
           onTabChange={(tab) => {
@@ -99,7 +99,7 @@ export default function LoginPage() {
           }}
         />
 
-        {/* 3. Thông báo Lỗi */}
+        {/* 3. Error Alert */}
         {errorMessage && (
           <div style={{
             padding: '10px 14px',
@@ -118,7 +118,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* 4. Thông báo Thành công */}
+        {/* 4. Success Alert */}
         {successMessage && (
           <div style={{
             padding: '10px 14px',
@@ -137,33 +137,33 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* 5. Form tương ứng */}
+        {/* 5. Form */}
         {mode === 'login' ? (
           <LoginForm onSubmit={handleLogin} loading={loading} />
         ) : (
           <RegisterForm onSubmit={handleRegister} loading={loading} />
         )}
 
-        {/* 6. Footer chuyển đổi nhanh */}
+        {/* 6. Footer */}
         <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-muted)' }}>
           {mode === 'login' ? (
             <span>
-              Chưa có tài khoản?{' '}
+              Don't have an account?{' '}
               <button
                 onClick={() => { setMode('register'); setErrorMessage(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 600, cursor: 'pointer' }}
               >
-                Đăng ký miễn phí
+                Sign up free
               </button>
             </span>
           ) : (
             <span>
-              Đã có tài khoản?{' '}
+              Already have an account?{' '}
               <button
                 onClick={() => { setMode('login'); setErrorMessage(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 600, cursor: 'pointer' }}
               >
-                Đăng nhập
+                Sign in
               </button>
             </span>
           )}
