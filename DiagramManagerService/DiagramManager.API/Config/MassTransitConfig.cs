@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using DiagramManager.Infrastructure.Consumers;
 using MassTransit;
 
 namespace DiagramManager.API.Config
@@ -12,6 +9,8 @@ namespace DiagramManager.API.Config
         {
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<DiagramProcessingCompletedConsumer>();
+
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     var host = configuration["RabbitMQ:Host"] ?? "localhost";
@@ -22,6 +21,8 @@ namespace DiagramManager.API.Config
                         h.Username(username);
                         h.Password(password);
                     });
+
+                    cfg.ConfigureEndpoints(context);
                 });
             });
             return services;

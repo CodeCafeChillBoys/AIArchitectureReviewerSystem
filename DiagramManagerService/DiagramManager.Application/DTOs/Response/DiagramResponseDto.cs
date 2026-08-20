@@ -15,6 +15,8 @@ namespace DiagramManager.Application.DTOs.Response
         public string Description { get; set; } = string.Empty;
         public string CurrentStorageUrl { get; set; } = string.Empty;
         public int CurrentVersion { get; set; }
+        public Guid? CurrentVersionId { get; set; }
+        public string? ContentText { get; set; }
         public DiagramVersionStatus CurrentStatus { get; set; }
         public DateTime CreatedAt { get; set; }
     }

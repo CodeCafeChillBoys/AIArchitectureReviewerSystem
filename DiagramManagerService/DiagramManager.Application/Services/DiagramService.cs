@@ -83,6 +83,8 @@ namespace DiagramManager.Application.Services
                 Description = diagram.Description,
                 CurrentStorageUrl = version.StorageUrl,
                 CurrentVersion = version.VersionNumber,
+                CurrentVersionId = version.Id,
+                ContentText = request.MermaidCode,
                 CurrentStatus = version.Status,
                 CreatedAt = diagram.CreatedAt
             };
@@ -100,6 +102,17 @@ namespace DiagramManager.Application.Services
             var versionRepo = _unitOfWork.Repository<DiagramVersion>();
             var versions = await versionRepo.FindAsync(v => v.DiagramId == id, cancellationToken);
             var latestVersion = versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+            
+            string? contentText = null;
+            if (latestVersion != null && !string.IsNullOrEmpty(latestVersion.StorageUrl))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", latestVersion.StorageUrl.TrimStart('/', '\\'));
+                if (File.Exists(filePath))
+                {
+                    contentText = await File.ReadAllTextAsync(filePath, cancellationToken);
+                }
+            }
+
             var responseDto = new DiagramResponseDto
             {
                 Id = diagram.Id,
@@ -109,6 +122,8 @@ namespace DiagramManager.Application.Services
                 Description = diagram.Description,
                 CurrentStorageUrl = latestVersion?.StorageUrl ?? string.Empty,
                 CurrentVersion = latestVersion?.VersionNumber ?? 1,
+                CurrentVersionId = latestVersion?.Id,
+                ContentText = contentText,
                 CurrentStatus = latestVersion?.Status ?? DiagramVersionStatus.Pending,
                 CreatedAt = diagram.CreatedAt
             };
@@ -141,6 +156,7 @@ namespace DiagramManager.Application.Services
                     Description = diagram.Description,
                     CurrentStorageUrl = latestVersion?.StorageUrl ?? string.Empty,
                     CurrentVersion = latestVersion?.VersionNumber ?? 1,
+                    CurrentVersionId = latestVersion?.Id,
                     CurrentStatus = latestVersion?.Status ?? DiagramVersionStatus.Pending,
                     CreatedAt = diagram.CreatedAt
                 });

@@ -82,9 +82,11 @@ public partial class AuthService
         // Trả về kết quả LoginResponse
         var loginData = new LoginResponse
         {
+            UserId = user.Id,
             AccessToken = accessToken,
             RefreshToken = refreshToken,
             Email = user.Email ?? string.Empty,
+            Role = roles.FirstOrDefault() ?? "User",
             ExpiresIn = 3600
         };
 

@@ -61,9 +61,11 @@ public partial class AuthService : IAuthService
 
         var loginData = new LoginResponse
         {
+            UserId = user.Id,
             AccessToken = accessToken,
             RefreshToken = refreshToken,
             Email = user.Email ?? string.Empty,
+            Role = roles.FirstOrDefault() ?? "User",
             ExpiresIn = 3600 // 60 mins in seconds
         };
 
