@@ -1,49 +1,36 @@
 import api from './api';
 
 export const reviewService = {
-  // Trigger AI review for a diagram / workspace
-  triggerReview: async (reviewPayload) => {
-    try {
-      const response = await api.post('/review/audit', reviewPayload);
-      return response.data;
-    } catch (error) {
-      console.warn('Review API fallback', error);
-      return {
-        id: 'rev-001',
-        title: 'Microservices Refactoring v3',
-        status: 'Violations Found',
-        consistencyScore: 78,
-        violationsCount: 2,
-        matrix: [
-          { component: 'AuthService', auth: 'green', billing: 'green', inventory: 'gray', orders: 'gray' },
-          { component: 'BillingService', auth: 'green', billing: 'green', inventory: 'orange', orders: 'green' },
-          { component: 'InventorySvc', auth: 'gray', billing: 'orange', inventory: 'green', orders: 'red' },
-          { component: 'OrderProcessor', auth: 'gray', billing: 'green', inventory: 'red', orders: 'green' },
-        ],
-        violations: [
-          {
-            id: 'v1',
-            type: 'Circular Dependency Detected',
-            severity: 'critical',
-            description: 'Direct bi-directional cyclic dependency identified between OrderService and InventoryService.',
-            files: ['OrderService.cs', 'InventoryService.cs'],
-            codeSnippet: `// OrderService.cs
-import { InventorySvc } from 'services/inventory';
+  /**
+   * 2. Lấy AI Report của một phiên bản sơ đồ theo VersionId
+   * GET /api/reviews/versions/{versionId}/report
+   */
+  getReportByVersionId: async (versionId) => {
+    return api.get(`/reviews/versions/${versionId}/report`);
+  },
 
-// InventoryService.cs
-import { OrderProcessor } from 'services/orders';`,
-          },
-          {
-            id: 'v2',
-            type: 'Direct DB Access Across Boundaries',
-            severity: 'warning',
-            description: 'BillingService performs direct query to Inventory DB without calling the Inventory API.',
-            files: ['BillingService.cs'],
-            codeSnippet: `// BillingService.cs
-var stock = await _inventoryDbContext.Stocks.FindAsync(productId);`,
-          },
-        ],
-      };
-    }
+  /**
+   * 3. Gửi tin nhắn chat tới AI Architecture Assistant
+   * POST /api/reviews/{sessionId}/chat
+   * Body: { message: string }
+   */
+  sendChatMessage: async (sessionId, message) => {
+    return api.post(`/reviews/${sessionId}/chat`, { message });
+  },
+
+  /**
+   * 4. Lấy lịch sử chat theo SessionId
+   * GET /api/reviews/{sessionId}/chat
+   */
+  getChatHistory: async (sessionId) => {
+    return api.get(`/reviews/${sessionId}/chat`);
+  },
+
+  /**
+   * 5. Lấy danh sách System Rules (Quy tắc kiến trúc RAG)
+   * GET /api/system-rules
+   */
+  getSystemRules: async () => {
+    return api.get('/system-rules');
   },
 };
