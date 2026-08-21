@@ -13,14 +13,12 @@ namespace DiagramManager.Application.Services
 {
     public class WorkspaceService : IWorkspaceService
     {
-
         private readonly IUnitOfWork _unitOfWork;
 
         public WorkspaceService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
-
 
         public async Task<ApiResponse<WorkspaceResponseDto>> CreateWorkspaceAsync(CreateWorkspaceRequestDto request, CancellationToken cancellationToken = default)
         {
@@ -30,87 +28,94 @@ namespace DiagramManager.Application.Services
                 UserId = request.UserId
             };
 
-            var workSpaceRepo = _unitOfWork.Repository<Workspace>();
-            await workSpaceRepo.AddAsync(entity, cancellationToken);
+            await _unitOfWork.Repository<Workspace>().AddAsync(entity, cancellationToken);
             await _unitOfWork.CompleteAsync(cancellationToken);
-            var responseDto = new WorkspaceResponseDto
+
+            return ApiResponse<WorkspaceResponseDto>.SuccessResponse(new WorkspaceResponseDto
             {
                 Id = entity.Id,
                 Name = entity.Name,
                 UserId = entity.UserId,
-                CreatedAt = entity.CreatedAt
-            };
-            return ApiResponse<WorkspaceResponseDto>.SuccessResponse(responseDto, DiagramMessages.WorkspaceCreatedSuccess);
+                CreatedAt = entity.CreatedAt,
+                DiagramCount = 0
+            }, DiagramMessages.WorkspaceCreatedSuccess);
         }
 
         public async Task<ApiResponse<PagedResponse<WorkspaceResponseDto>>> GetUserWorkspacesAsync(
-        Guid userId,
-        PaginationParams paginationParams,
-        CancellationToken cancellationToken = default)
+            Guid userId,
+            PaginationParams paginationParams,
+            CancellationToken cancellationToken = default)
         {
-            var workspaceRepo = _unitOfWork.Repository<Workspace>();
-            var userWorkspaces = await workspaceRepo.FindAsync(w => w.UserId == userId, cancellationToken);
-            var totalCount = userWorkspaces.Count();
-            var pagedItems = userWorkspaces
-    .OrderByDescending(w => w.CreatedAt)
-    .Skip((paginationParams.PageIndex - 1) * paginationParams.PageSize)
-    .Take(paginationParams.PageSize)
-    .Select(w => new WorkspaceResponseDto
-    {
-        Id = w.Id,
-        Name = w.Name,
-        UserId = w.UserId,
-        CreatedAt = w.CreatedAt
-    })
-    .ToList();
+            var workspaces = (await _unitOfWork.Repository<Workspace>().FindAsync(w => w.UserId == userId, cancellationToken)).ToList();
+            var diagrams = (await _unitOfWork.Repository<Diagram>().GetAllAsync(cancellationToken)).ToList();
+
+            var totalCount = workspaces.Count;
+            var pagedItems = workspaces
+                .OrderByDescending(w => w.CreatedAt)
+                .Skip((paginationParams.PageIndex - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .Select(w => new WorkspaceResponseDto
+                {
+                    Id = w.Id,
+                    Name = w.Name,
+                    UserId = w.UserId,
+                    CreatedAt = w.CreatedAt,
+                    DiagramCount = diagrams.Count(d => d.WorkspaceId == w.Id)
+                })
+                .ToList();
+
             var pagedResult = new PagedResponse<WorkspaceResponseDto>(
-      pagedItems,
-      totalCount,
-      paginationParams.PageIndex,
-      paginationParams.PageSize);
+                pagedItems,
+                totalCount,
+                paginationParams.PageIndex,
+                paginationParams.PageSize);
+
             return ApiResponse<PagedResponse<WorkspaceResponseDto>>.SuccessResponse(pagedResult);
         }
 
         public async Task<ApiResponse<WorkspaceResponseDto>> GetWorkspaceByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var workspaceRepo = _unitOfWork.Repository<Workspace>();
-
-            var workspace = await workspaceRepo.GetByIdAsync(id, cancellationToken);
+            var workspace = await _unitOfWork.Repository<Workspace>().GetByIdAsync(id, cancellationToken);
             if (workspace == null)
             {
                 return ApiResponse<WorkspaceResponseDto>.FailureResponse(DiagramMessages.WorkspaceNotFound);
             }
 
-            var responseDto = new WorkspaceResponseDto
+            var diagrams = await _unitOfWork.Repository<Diagram>().FindAsync(d => d.WorkspaceId == id, cancellationToken);
+
+            return ApiResponse<WorkspaceResponseDto>.SuccessResponse(new WorkspaceResponseDto
             {
                 Id = workspace.Id,
                 Name = workspace.Name,
                 UserId = workspace.UserId,
-                CreatedAt = workspace.CreatedAt
-            };
-
-            return ApiResponse<WorkspaceResponseDto>.SuccessResponse(responseDto);
+                CreatedAt = workspace.CreatedAt,
+                DiagramCount = diagrams.Count()
+            });
         }
 
         public async Task<ApiResponse<WorkspaceResponseDto>> UpdateWorkspaceAsync(Guid id, UpdateWorkspaceRequestDto request, CancellationToken cancellationToken = default)
         {
-            var workSpaceRepo = _unitOfWork.Repository<Workspace>();
-            var existingWorkspace = await workSpaceRepo.GetByIdAsync(id, cancellationToken);
-            if (existingWorkspace == null)
+            var repo = _unitOfWork.Repository<Workspace>();
+            var workspace = await repo.GetByIdAsync(id, cancellationToken);
+            if (workspace == null)
             {
                 return ApiResponse<WorkspaceResponseDto>.FailureResponse(DiagramMessages.WorkspaceNotFound);
             }
-            existingWorkspace.Name = request.Name;
-            workSpaceRepo.Update(existingWorkspace);
+
+            workspace.Name = request.Name;
+            repo.Update(workspace);
             await _unitOfWork.CompleteAsync(cancellationToken);
-            var responseDto = new WorkspaceResponseDto
+
+            var diagrams = await _unitOfWork.Repository<Diagram>().FindAsync(d => d.WorkspaceId == id, cancellationToken);
+
+            return ApiResponse<WorkspaceResponseDto>.SuccessResponse(new WorkspaceResponseDto
             {
-                Id = existingWorkspace.Id,
-                Name = existingWorkspace.Name,
-                UserId = existingWorkspace.UserId,
-                CreatedAt = existingWorkspace.CreatedAt
-            };
-            return ApiResponse<WorkspaceResponseDto>.SuccessResponse(responseDto, DiagramMessages.WorkspaceUpdatedSuccess);
+                Id = workspace.Id,
+                Name = workspace.Name,
+                UserId = workspace.UserId,
+                CreatedAt = workspace.CreatedAt,
+                DiagramCount = diagrams.Count()
+            }, DiagramMessages.WorkspaceUpdatedSuccess);
         }
     }
 }

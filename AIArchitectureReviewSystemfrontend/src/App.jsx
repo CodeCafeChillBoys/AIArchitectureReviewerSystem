@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import DiagramEditorPage from './pages/DiagramEditorPage';
 import AIReviewCenterPage from './pages/AIReviewCenterPage';
+import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
                 <Route path="/editor/:id" element={<DiagramEditorPage />} />
                 <Route path="/review" element={<AIReviewCenterPage />} />
                 <Route path="/review/:id" element={<AIReviewCenterPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
             </AppLayout>
