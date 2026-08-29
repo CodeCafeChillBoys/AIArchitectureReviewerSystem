@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { authService } from '../services/authService';
 
@@ -10,6 +10,8 @@ import RegisterForm from '../components/auth/RegisterForm';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
 
   // Mode: 'login' | 'register'
   const [mode, setMode] = useState('login');
@@ -18,6 +20,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Nếu đã đăng nhập rồi thì điều hướng thẳng tới dashboard hoặc route trước đó
+  useEffect(() => {
+    if (authService.isAuthenticated()) {
+      navigate(from, { replace: true });
+    }
+  }, [navigate, from]);
 
   // Handle Login
   const handleLogin = async ({ email, password }) => {
@@ -28,7 +37,7 @@ export default function LoginPage() {
       setLoading(true);
       const response = await authService.login(email, password);
       if (response && response.success) {
-        navigate('/dashboard');
+        navigate(from, { replace: true });
       } else {
         setErrorMessage(response?.message || 'Login failed. Please check credentials.');
       }

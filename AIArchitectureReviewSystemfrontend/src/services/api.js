@@ -38,7 +38,12 @@ api.interceptors.response.use(
           // Hết hạn phiên đăng nhập / Chưa xác thực
           console.error('Phiên đăng nhập đã hết hạn hoặc không hợp lệ.');
           localStorage.removeItem('accessToken');
-          // window.location.href = '/login';
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('user');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
           break;
         case 403:
           console.error('Bạn không có quyền truy cập tài nguyên này.');

@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Plus,
   Zap,
+  Shield,
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { workspaceService } from '../../services/workspaceService';
@@ -100,6 +101,29 @@ export default function Sidebar() {
             <LayoutDashboard size={17} />
             <span>Dashboard</span>
           </NavLink>
+
+          {authService.isAdmin() && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', borderRadius: '8px', textDecoration: 'none', fontSize: '13px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Shield size={17} style={{ color: '#7c3aed' }} />
+                <span>Admin Console</span>
+              </div>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                padding: '1px 5px',
+                borderRadius: '4px',
+                backgroundColor: '#f5f3ff',
+                color: '#7c3aed',
+              }}>
+                HUB
+              </span>
+            </NavLink>
+          )}
 
           <NavLink
             to="/settings"
