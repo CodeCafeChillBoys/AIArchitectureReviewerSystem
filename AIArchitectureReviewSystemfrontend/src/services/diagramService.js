@@ -77,4 +77,12 @@ export const diagramService = {
       },
     });
   },
+
+  /**
+   * Xóa một Diagram theo ID
+   * DELETE /api/diagrams/{id}
+   */
+  deleteDiagram: async (id) => {
+    return api.delete(`/diagrams/${id}`);
+  },
 };

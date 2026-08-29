@@ -59,4 +59,15 @@ public class DiagramsController : ControllerBase
         var response = await _diagramService.GetWorkspaceDiagramsAsync(workspaceId, paginationParams, cancellationToken);
         return Ok(response);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteDiagram(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await _diagramService.DeleteDiagramAsync(id, cancellationToken);
+        if (!response.Success)
+        {
+            return NotFound(response);
+        }
+        return Ok(response);
+    }
 }

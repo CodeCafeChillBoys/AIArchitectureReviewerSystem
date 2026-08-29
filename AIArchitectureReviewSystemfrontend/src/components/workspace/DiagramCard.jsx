@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FileCode,
   Image as ImageIcon,
@@ -8,6 +8,8 @@ import {
   Bot,
   Layers,
   ArrowRight,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,8 +20,10 @@ const STATUS_CONFIG = {
   3: { label: 'Failed', color: 'var(--color-danger)', bg: 'var(--color-danger-bg)', border: '#fecaca' },
 };
 
-export default function DiagramCard({ diagram }) {
+export default function DiagramCard({ diagram, onDelete }) {
   const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const status = STATUS_CONFIG[diagram.currentStatus] || {
     label: 'Pending',
@@ -177,8 +181,136 @@ export default function DiagramCard({ diagram }) {
           >
             View Report
           </button>
+
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowConfirm(true);
+            }}
+            title="Delete Diagram"
+            style={{
+              padding: '6px',
+              height: '32px',
+              width: '32px',
+              borderRadius: 'var(--radius-md)',
+              color: '#ef4444',
+              borderColor: '#fee2e2',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#ffffff',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#fef2f2';
+              e.currentTarget.style.borderColor = '#fca5a5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.borderColor = '#fee2e2';
+            }}
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
+
+      {/* Delete Confirm Modal */}
+      {showConfirm && (
+        <div
+          className="modal-backdrop"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isDeleting) setShowConfirm(false);
+          }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            cursor: 'default',
+          }}
+        >
+          <div
+            className="modal-content card"
+            style={{
+              maxWidth: '420px',
+              width: '90%',
+              padding: '24px',
+              backgroundColor: '#ffffff',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#fee2e2',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <Trash2 size={18} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                  Delete Diagram
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+                  This cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '20px' }}>
+              Delete <strong style={{ color: 'var(--text-primary)' }}>"{diagram.name}"</strong>? All versions and AI reports will be removed.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => setShowConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={async () => {
+                  if (onDelete) {
+                    try {
+                      setIsDeleting(true);
+                      await onDelete(diagram.id);
+                    } finally {
+                      setIsDeleting(false);
+                      setShowConfirm(false);
+                    }
+                  }
+                }}
+                disabled={isDeleting}
+                style={{ backgroundColor: '#dc2626', borderColor: '#dc2626', color: '#ffffff', gap: '6px' }}
+              >
+                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

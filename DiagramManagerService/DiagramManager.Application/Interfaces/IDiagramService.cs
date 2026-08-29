@@ -9,4 +9,5 @@ public interface IDiagramService
     Task<ApiResponse<DiagramResponseDto>> GetDiagramByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<ApiResponse<PagedResponse<DiagramResponseDto>>> GetWorkspaceDiagramsAsync(Guid workspaceId, PaginationParams paginationParams, CancellationToken cancellationToken = default);
     Task<ApiResponse<DiagramResponseDto>> CreateMermaidDiagramAsync(CreateMermaidDiagramRequestDto request, CancellationToken cancellationToken = default);
+    Task<ApiResponse<bool>> DeleteDiagramAsync(Guid id, CancellationToken cancellationToken = default);
 }

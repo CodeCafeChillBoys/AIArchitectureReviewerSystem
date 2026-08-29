@@ -143,6 +143,17 @@ export default function WorkspaceDetailPage() {
     }
   };
 
+  // 4. Xử lý Xóa Diagram
+  const handleDeleteDiagram = async (diagramId) => {
+    try {
+      await diagramService.deleteDiagram(diagramId);
+      await loadWorkspaceData();
+    } catch (err) {
+      console.error('Lỗi khi xóa Diagram:', err);
+      alert(err.response?.data?.message || err.message || 'Không thể xóa sơ đồ.');
+    }
+  };
+
   return (
     <div style={{ padding: '32px 28px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* 1. Header Toolbar của Workspace */}
@@ -290,7 +301,7 @@ export default function WorkspaceDetailPage() {
 
               {/* Render Table or Grid */}
               {viewMode === 'table' ? (
-                <DiagramListView diagrams={diagrams} />
+                <DiagramListView diagrams={diagrams} onDelete={handleDeleteDiagram} />
               ) : (
                 <div style={{
                   display: 'grid',
@@ -298,7 +309,7 @@ export default function WorkspaceDetailPage() {
                   gap: '20px',
                 }}>
                   {diagrams.map((diagram) => (
-                    <DiagramCard key={diagram.id} diagram={diagram} />
+                    <DiagramCard key={diagram.id} diagram={diagram} onDelete={handleDeleteDiagram} />
                   ))}
                 </div>
               )}

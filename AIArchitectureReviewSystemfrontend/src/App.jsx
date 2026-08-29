@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
@@ -9,8 +9,13 @@ import DiagramEditorPage from './pages/DiagramEditorPage';
 import AIReviewCenterPage from './pages/AIReviewCenterPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
+import { initSignalR } from './services/signalrService';
 
 export default function App() {
+  useEffect(() => {
+    initSignalR();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
