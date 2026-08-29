@@ -177,9 +177,55 @@ export const authService = {
   },
 
   /**
-   * Kiểm tra đã đăng nhập chưa
+   * Lấy vai trò (Role) của người dùng hiện tại ('Admin' | 'User')
+   */
+  getUserRole: () => {
+    const user = authService.getCurrentUser();
+    if (user && user.role) return user.role;
+
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      const payload = parseJwt(token);
+      return (
+        payload?.role ||
+        payload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+        'User'
+      );
+    }
+    return 'User';
+  },
+
+  /**
+   * Kiểm tra người dùng hiện tại có phải Admin hay không
+   */
+  isAdmin: () => {
+    const role = authService.getUserRole();
+    return role === 'Admin' || (typeof role === 'string' && role.toLowerCase() === 'admin');
+  },
+
+  /**
+   * Kiểm tra đã đăng nhập chưa (có token và còn hạn sử dụng)
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
+    if (!token) return false;
+
+    try {
+      const payload = parseJwt(token);
+      if (payload && payload.exp) {
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp < now) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('user');
+          return false;
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
   },
 };
+

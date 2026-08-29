@@ -333,14 +333,12 @@ export default function AIReviewCenterPage() {
                   <div>
                     {/* Visual Diagram Render */}
                     <div style={{
-                      backgroundColor: 'var(--bg-main)',
-                      padding: '24px',
                       borderRadius: 'var(--radius-md)',
                       border: '1px solid var(--border-color)',
                       marginBottom: '20px',
-                      overflowX: 'auto',
+                      overflow: 'hidden',
                     }}>
-                      <MermaidRenderer code={refactoredMermaid} id="ai-refactored-mermaid" />
+                      <MermaidRenderer code={refactoredMermaid} id="ai-refactored-mermaid" minHeight="420px" />
                     </div>
 
                     {/* Raw Code Block */}

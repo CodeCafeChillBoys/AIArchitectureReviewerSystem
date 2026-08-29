@@ -6,8 +6,10 @@ const DIAGRAM_TYPES = [
   { value: 'Sequence', label: 'Sequence Diagram' },
   { value: 'Class', label: 'Class Diagram' },
   { value: 'ERD', label: 'ERD (Database Entity Relationship)' },
+  { value: 'Architecture', label: 'System Architecture' },
   { value: 'State', label: 'State Diagram' },
   { value: 'UseCase', label: 'Use Case Diagram' },
+  { value: 'Other', label: 'Other' },
 ];
 
 const MERMAID_TEMPLATES = {
@@ -64,6 +66,24 @@ const MERMAID_TEMPLATES = {
         string name
         string diagram_type
     }`,
+  Architecture: `graph TB
+    subgraph Frontend [Client Layer]
+        Web[Web React App]
+        Mobile[Mobile App]
+    end
+    subgraph Gateway [API Gateway]
+        Ocelot[API Gateway / Reverse Proxy]
+    end
+    subgraph Services [Microservices]
+        AuthSvc[Auth Service]
+        DiagramSvc[Diagram Service]
+        AISvc[AI Reviewer Service]
+    end
+    Web --> Ocelot
+    Mobile --> Ocelot
+    Ocelot --> AuthSvc
+    Ocelot --> DiagramSvc
+    Ocelot --> AISvc`,
 };
 
 export default function CreateMermaidModal({
@@ -75,6 +95,7 @@ export default function CreateMermaidModal({
 }) {
   const [name, setName] = useState('');
   const [diagramType, setDiagramType] = useState('Flowchart');
+  const [customType, setCustomType] = useState('');
   const [description, setDescription] = useState('');
   const [mermaidCode, setMermaidCode] = useState(MERMAID_TEMPLATES.Flowchart);
   const [validationError, setValidationError] = useState('');
@@ -94,15 +115,21 @@ export default function CreateMermaidModal({
       setValidationError('Please enter diagram name.');
       return;
     }
+    if (diagramType === 'Other' && !customType.trim()) {
+      setValidationError('Please enter the custom diagram type.');
+      return;
+    }
     if (!mermaidCode.trim()) {
       setValidationError('Please enter Mermaid code.');
       return;
     }
 
+    const finalDiagramType = diagramType === 'Other' ? customType.trim() : diagramType;
+
     setValidationError('');
     onSubmit({
       name: name.trim(),
-      diagramType,
+      diagramType: finalDiagramType,
       description: description.trim(),
       mermaidCode: mermaidCode.trim(),
     });
@@ -191,24 +218,43 @@ export default function CreateMermaidModal({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <label className="form-label" style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>
-                Diagram Type <span style={{ color: 'var(--color-danger)' }}>*</span>
-              </label>
-              <select
-                className="input-text"
-                value={diagramType}
-                onChange={(e) => handleTypeChange(e.target.value)}
-                disabled={loading}
-                style={{ cursor: 'pointer' }}
-              >
-                {DIAGRAM_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+          <div style={{ display: 'grid', gridTemplateColumns: diagramType === 'Other' ? '1fr' : '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: diagramType === 'Other' ? '1fr 1fr' : '1fr', gap: '14px' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>
+                  Diagram Type <span style={{ color: 'var(--color-danger)' }}>*</span>
+                </label>
+                <select
+                  className="input-text"
+                  value={diagramType}
+                  onChange={(e) => handleTypeChange(e.target.value)}
+                  disabled={loading}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {DIAGRAM_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {diagramType === 'Other' && (
+                <div>
+                  <label className="form-label" style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>
+                    Custom Diagram Type <span style={{ color: 'var(--color-danger)' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="input-text"
+                    placeholder="e.g. C4 Model, Network Topology..."
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+              )}
             </div>
 
             <div>

@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import GlobalSearchBar from './GlobalSearchBar';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Header({
   title = 'Dashboard',
@@ -55,33 +57,14 @@ export default function Header({
 
       {/* Khối bên Phải: Search bar, Actions, Chuông thông báo, User Dropdown */}
       <div className="header-actions">
-        {/* 1. Ô Tìm kiếm nhanh */}
-        <div style={{ position: 'relative', width: '260px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Search workspaces, diagrams..."
-            className="input-text"
-            style={{ paddingLeft: '36px', height: '36px', fontSize: '12.5px' }}
-          />
-        </div>
+        {/* 1. Ô Tìm kiếm nhanh toàn cục (Workspaces & Diagrams) */}
+        <GlobalSearchBar />
 
         {/* 2. Các nút hành động riêng của từng màn hình (nếu có) */}
         {actions}
 
-        {/* 3. Nút chuông thông báo */}
-        <button className="btn btn-outline btn-sm" style={{ padding: '8px', borderRadius: '50%' }}>
-          <Bell size={16} />
-        </button>
+        {/* 3. Nút chuông thông báo Realtime */}
+        <NotificationDropdown />
 
         {/* 4. Avatar & Dropdown Người dùng */}
         <div style={{ position: 'relative' }} ref={dropdownRef}>

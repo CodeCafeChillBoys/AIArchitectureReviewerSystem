@@ -235,5 +235,44 @@ namespace DiagramManager.Application.Services
             };
             return ApiResponse<DiagramResponseDto>.SuccessResponse(responseDto, DiagramMessages.DiagramCreatedSuccess);
         }
+
+        public async Task<ApiResponse<bool>> DeleteDiagramAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var diagramRepo = _unitOfWork.Repository<Diagram>();
+            var diagram = await diagramRepo.GetByIdAsync(id, cancellationToken);
+            if (diagram == null)
+            {
+                return ApiResponse<bool>.FailureResponse("Diagram not found.");
+            }
+
+            var versionRepo = _unitOfWork.Repository<DiagramVersion>();
+            var versions = await versionRepo.FindAsync(v => v.DiagramId == id, cancellationToken);
+
+            foreach (var version in versions)
+            {
+                if (!string.IsNullOrEmpty(version.StorageUrl))
+                {
+                    try
+                    {
+                        var relativePath = version.StorageUrl.TrimStart('/', '\\');
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore file deletion error
+                    }
+                }
+                versionRepo.Remove(version);
+            }
+
+            diagramRepo.Remove(diagram);
+            await _unitOfWork.CompleteAsync(cancellationToken);
+
+            return ApiResponse<bool>.SuccessResponse(true, "Diagram deleted successfully.");
+        }
     }
 }

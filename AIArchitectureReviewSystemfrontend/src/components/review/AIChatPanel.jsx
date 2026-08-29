@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { reviewService } from '../../services/reviewService';
 
 export default function AIChatPanel({ sessionId }) {
@@ -27,11 +29,15 @@ export default function AIChatPanel({ sessionId }) {
     const fetchHistory = async () => {
       try {
         const res = await reviewService.getChatHistory(sessionId);
-        if (res && Array.isArray(res.data) && res.data.length > 0) {
-          setMessages(res.data.map((m) => ({
-            role: m.isUser ? 'user' : 'assistant',
-            content: m.content || m.message,
-          })));
+        const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        if (list.length > 0) {
+          setMessages(list.map((m) => {
+            const isUserMessage = m.role?.toLowerCase() === 'user' || m.isUser === true;
+            return {
+              role: isUserMessage ? 'user' : 'assistant',
+              content: m.content || m.message || '',
+            };
+          }));
         }
       } catch (err) {
         console.error('Failed to load chat history:', err);
@@ -52,16 +58,21 @@ export default function AIChatPanel({ sessionId }) {
     try {
       const activeSession = sessionId || '00000000-0000-0000-0000-000000000000';
       const res = await reviewService.sendChatMessage(activeSession, userMessage);
-      const reply = res?.data?.reply || res?.data?.message || res?.data || 'Request received.';
       
-      setMessages((prev) => [...prev, { role: 'assistant', content: typeof reply === 'string' ? reply : JSON.stringify(reply) }]);
+      const reply = res?.message ?? res?.reply ?? res?.data?.message ?? res?.data?.reply ?? (typeof res === 'string' ? res : '');
+      const finalReply = reply || 'Sorry, I could not generate a response. Please try again.';
+      
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: typeof finalReply === 'string' ? finalReply : JSON.stringify(finalReply) }
+      ]);
     } catch (err) {
       console.error('Chat error:', err);
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: 'Sorry, I am currently unable to reach the AI Service. ' + (err.response?.data || err.message),
+          content: 'Sorry, I am currently unable to reach the AI Service. ' + (err.response?.data?.message || err.response?.data || err.message),
         },
       ]);
     } finally {
@@ -81,30 +92,18 @@ export default function AIChatPanel({ sessionId }) {
     }}>
       {/* Chat header */}
       <div style={{
-        padding: '14px 18px',
+        padding: '14px 20px',
         borderBottom: '1px solid var(--border-color)',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        backgroundColor: '#fafafa',
+        justifyContent: 'space-between',
+        backgroundColor: '#ffffff',
       }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: '8px',
-          backgroundColor: 'var(--accent-blue-light)',
-          color: 'var(--accent-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Sparkles size={16} />
-        </div>
         <div>
-          <h4 style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
             AI Architecture Assistant
           </h4>
-          <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 500 }}>
+          <span style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 500 }}>
             ● Ready to assist
           </span>
         </div>
@@ -113,11 +112,11 @@ export default function AIChatPanel({ sessionId }) {
       {/* Message list */}
       <div style={{
         flex: 1,
-        padding: '16px',
+        padding: '20px',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: '16px',
       }}>
         {messages.map((msg, idx) => {
           const isUser = msg.role === 'user';
@@ -126,69 +125,84 @@ export default function AIChatPanel({ sessionId }) {
               key={idx}
               style={{
                 display: 'flex',
-                gap: '8px',
-                alignItems: 'flex-start',
-                flexDirection: isUser ? 'row-reverse' : 'row',
+                justifyContent: isUser ? 'flex-end' : 'flex-start',
+                width: '100%',
               }}
             >
               <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: isUser ? 'var(--accent-primary)' : 'var(--accent-blue-light)',
-                color: isUser ? '#ffffff' : 'var(--accent-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                {isUser ? <User size={14} /> : <Bot size={15} />}
-              </div>
-
-              <div style={{
-                maxWidth: '82%',
-                padding: '10px 14px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                lineHeight: 1.45,
-                backgroundColor: isUser ? 'var(--accent-primary)' : 'var(--bg-main)',
+                maxWidth: '80%',
+                padding: '12px 16px',
+                borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                fontSize: '13.5px',
+                lineHeight: 1.55,
+                backgroundColor: isUser ? 'var(--accent-primary)' : '#f1f5f9',
                 color: isUser ? '#ffffff' : 'var(--text-primary)',
-                border: isUser ? 'none' : '1px solid var(--border-color)',
-                whiteSpace: 'pre-wrap',
+                border: isUser ? 'none' : '1px solid #e2e8f0',
                 wordBreak: 'break-word',
+                boxShadow: isUser ? '0 2px 4px rgba(37, 99, 235, 0.15)' : 'none',
               }}>
-                {msg.content}
+                {isUser ? (
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                ) : (
+                  <div className="chat-ai-markdown" style={{ fontSize: '13.5px', lineHeight: 1.6 }}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ children }) => <p style={{ margin: '4px 0' }}>{children}</p>,
+                        ul: ({ children }) => <ul style={{ paddingLeft: '18px', margin: '6px 0' }}>{children}</ul>,
+                        ol: ({ children }) => <ol style={{ paddingLeft: '18px', margin: '6px 0' }}>{children}</ol>,
+                        li: ({ children }) => <li style={{ margin: '2px 0' }}>{children}</li>,
+                        code: ({ inline, children }) => (
+                          <code style={{
+                            fontFamily: 'Consolas, Monaco, monospace',
+                            fontSize: '12px',
+                            backgroundColor: '#e2e8f0',
+                            color: '#0f172a',
+                            padding: '2px 5px',
+                            borderRadius: '4px',
+                          }}>
+                            {children}
+                          </code>
+                        ),
+                        pre: ({ children }) => (
+                          <pre style={{
+                            padding: '10px 12px',
+                            backgroundColor: '#0f172a',
+                            color: '#f8fafc',
+                            borderRadius: '6px',
+                            overflowX: 'auto',
+                            fontSize: '12.5px',
+                            margin: '8px 0',
+                          }}>
+                            {children}
+                          </pre>
+                        ),
+                        strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
 
         {sending && (
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--accent-blue-light)',
-              color: 'var(--accent-primary)',
+              padding: '10px 16px',
+              borderRadius: '16px 16px 16px 4px',
+              backgroundColor: '#f1f5f9',
+              border: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Bot size={15} />
-            </div>
-            <div style={{
-              padding: '8px 14px',
-              borderRadius: '12px',
-              backgroundColor: 'var(--bg-main)',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12.5px',
+              gap: '8px',
+              fontSize: '13px',
               color: 'var(--text-secondary)',
             }}>
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={15} className="animate-spin" color="var(--accent-primary)" />
               <span>AI is analyzing and generating response...</span>
             </div>
           </div>
@@ -201,11 +215,11 @@ export default function AIChatPanel({ sessionId }) {
       <form
         onSubmit={handleSend}
         style={{
-          padding: '12px',
+          padding: '14px 18px',
           borderTop: '1px solid var(--border-color)',
           display: 'flex',
-          gap: '8px',
-          backgroundColor: '#fafafa',
+          gap: '10px',
+          backgroundColor: '#ffffff',
         }}
       >
         <input
@@ -215,13 +229,13 @@ export default function AIChatPanel({ sessionId }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={sending}
-          style={{ flex: 1, height: '38px', fontSize: '13px' }}
+          style={{ flex: 1, height: '40px', fontSize: '13px', borderRadius: '8px' }}
         />
         <button
           type="submit"
           className="btn btn-primary"
           disabled={!input.trim() || sending}
-          style={{ height: '38px', width: '38px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ height: '40px', width: '40px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}
         >
           <Send size={15} />
         </button>

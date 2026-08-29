@@ -7,8 +7,12 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Trash2,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { diagramService } from '../../services/diagramService';
 
 const STATUS_CONFIG = {
   0: { label: 'Pending', color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
@@ -17,8 +21,12 @@ const STATUS_CONFIG = {
   3: { label: 'Failed', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 };
 
-export default function DiagramListView({ diagrams = [] }) {
+export default function DiagramListView({ diagrams = [], onDelete }) {
   const navigate = useNavigate();
+
+  // Delete State
+  const [deletingDiagram, setDeletingDiagram] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,6 +98,24 @@ export default function DiagramListView({ diagrams = [] }) {
     return pages;
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deletingDiagram) return;
+    try {
+      setIsDeleting(true);
+      if (onDelete) {
+        await onDelete(deletingDiagram.id);
+      } else {
+        await diagramService.deleteDiagram(deletingDiagram.id);
+      }
+      setDeletingDiagram(null);
+    } catch (err) {
+      console.error('Delete diagram error:', err);
+      alert(err.response?.data?.message || err.message || 'Failed to delete diagram.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="card" style={{
       padding: 0,
@@ -99,7 +125,8 @@ export default function DiagramListView({ diagrams = [] }) {
       overflow: 'hidden',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
     }}>
-      <div style={{ overflowX: 'auto' }}>
+      {/* Table Container with Horizontal Scroll */}
+      <div style={{ overflowX: 'auto', width: '100%' }}>
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
@@ -108,27 +135,32 @@ export default function DiagramListView({ diagrams = [] }) {
         }}>
           <thead>
             <tr style={{
-              backgroundColor: '#f8fafc',
               borderBottom: '1px solid var(--border-color)',
+              backgroundColor: '#f8fafc',
               color: 'var(--text-muted)',
-              fontSize: '12px',
-              fontWeight: 600,
+              fontSize: '11.5px',
+              fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              letterSpacing: '0.05em',
             }}>
-              <th style={{ padding: '14px 20px', width: '38%' }}>Name</th>
-              <th style={{ padding: '14px 16px', width: '15%' }}>Type</th>
-              <th style={{ padding: '14px 16px', width: '10%' }}>Version</th>
-              <th style={{ padding: '14px 16px', width: '15%' }}>Status</th>
-              <th style={{ padding: '14px 16px', width: '12%' }}>Last Modified</th>
-              <th style={{ padding: '14px 20px', width: '10%', textAlign: 'right' }}>Actions</th>
+              <th style={{ padding: '14px 20px', width: '35%' }}>Name</th>
+              <th style={{ padding: '14px 16px' }}>Type</th>
+              <th style={{ padding: '14px 16px' }}>Version</th>
+              <th style={{ padding: '14px 16px' }}>Status</th>
+              <th style={{ padding: '14px 16px' }}>Last Modified</th>
+              <th style={{ padding: '14px 20px', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
-
           <tbody>
             {paginatedDiagrams.map((diag, index) => {
+              const status = STATUS_CONFIG[diag.currentStatus] || {
+                label: 'Pending',
+                color: '#d97706',
+                bg: '#fffbeb',
+                border: '#fde68a',
+              };
+
               const isMermaid = diag.currentStorageUrl?.endsWith('.mmd') || diag.rawFormat === 'mermaid';
-              const status = STATUS_CONFIG[diag.currentStatus] || STATUS_CONFIG[0];
               const fileName = getFileName(diag);
 
               return (
@@ -136,21 +168,16 @@ export default function DiagramListView({ diagrams = [] }) {
                   key={diag.id || index}
                   onClick={() => navigate(`/editor/${diag.id}`)}
                   style={{
-                    borderBottom: index === paginatedDiagrams.length - 1 ? 'none' : '1px solid var(--border-color)',
+                    borderBottom: '1px solid var(--border-color)',
+                    transition: 'background-color 0.15s ease',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    backgroundColor: '#ffffff',
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f8fafc';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-main)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
-                  {/* 1. Name & File Subtitle */}
+                  {/* 1. Name & Filename */}
                   <td style={{ padding: '14px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                       <div style={{
                         width: '38px',
                         height: '38px',
@@ -164,23 +191,27 @@ export default function DiagramListView({ diagrams = [] }) {
                       }}>
                         {getDiagramIcon(diag)}
                       </div>
-
-                      <div style={{ overflow: 'hidden' }}>
+                      <div style={{ minWidth: 0 }}>
                         <div style={{
                           fontWeight: 600,
                           color: 'var(--text-primary)',
                           fontSize: '14px',
                           marginBottom: '2px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '280px',
                         }}>
                           {diag.name}
                         </div>
                         <div style={{
                           fontSize: '12px',
                           color: 'var(--text-muted)',
-                          fontFamily: 'var(--font-mono)',
+                          fontFamily: 'monospace',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
+                          maxWidth: '280px',
                         }}>
                           {fileName}
                         </div>
@@ -188,44 +219,34 @@ export default function DiagramListView({ diagrams = [] }) {
                     </div>
                   </td>
 
-                  {/* 2. Type Badge */}
-                  <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                  {/* 2. Type */}
+                  <td style={{ padding: '14px 16px' }}>
                     <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      padding: '3px 10px',
-                      borderRadius: '6px',
-                      backgroundColor: '#f1f5f9',
-                      border: '1px solid #e2e8f0',
-                      color: 'var(--text-secondary)',
                       fontSize: '12px',
+                      color: 'var(--text-secondary)',
+                      backgroundColor: 'var(--bg-main)',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-color)',
                       fontWeight: 500,
-                      fontFamily: isMermaid ? 'var(--font-mono)' : 'inherit',
+                      display: 'inline-block',
                     }}>
-                      {isMermaid ? 'Mermaid' : 'Image'}
-                      {diag.diagramType && ` (${diag.diagramType})`}
+                      {isMermaid ? `Mermaid (${diag.diagramType || 'Code'})` : `Image (${diag.diagramType || 'Image'})`}
                     </span>
                   </td>
 
                   {/* 3. Version */}
-                  <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)',
-                      fontFamily: 'var(--font-mono)',
-                    }}>
-                      v{diag.currentVersion || 1}.0
-                    </span>
+                  <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+                    v{diag.currentVersion ? Number(diag.currentVersion).toFixed(1) : '1.0'}
                   </td>
 
-                  {/* 4. AI Status */}
-                  <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                  {/* 4. Status Badge */}
+                  <td style={{ padding: '14px 16px' }}>
                     <span style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '5px',
-                      padding: '3px 8px',
+                      gap: '6px',
+                      padding: '3px 10px',
                       borderRadius: '12px',
                       fontSize: '11.5px',
                       fontWeight: 600,
@@ -251,7 +272,7 @@ export default function DiagramListView({ diagrams = [] }) {
 
                   {/* 6. Actions */}
                   <td style={{ padding: '14px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'inline-block' }}>
+                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                       <button
                         className="btn btn-primary btn-sm"
                         onClick={() => navigate(`/review/${diag.id}`)}
@@ -266,6 +287,36 @@ export default function DiagramListView({ diagrams = [] }) {
                         }}
                       >
                         View Report
+                      </button>
+
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => setDeletingDiagram(diag)}
+                        title="Delete Diagram"
+                        style={{
+                          padding: '6px',
+                          height: '34px',
+                          width: '34px',
+                          borderRadius: 'var(--radius-md)',
+                          color: '#ef4444',
+                          borderColor: '#fee2e2',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fef2f2';
+                          e.currentTarget.style.borderColor = '#fca5a5';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ffffff';
+                          e.currentTarget.style.borderColor = '#fee2e2';
+                        }}
+                      >
+                        <Trash2 size={15} />
                       </button>
                     </div>
                   </td>
@@ -438,6 +489,106 @@ export default function DiagramListView({ diagrams = [] }) {
             >
               <ChevronsRight size={15} />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingDiagram && (
+        <div
+          className="modal-backdrop"
+          onClick={() => !isDeleting && setDeletingDiagram(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="modal-content card"
+            style={{
+              maxWidth: '440px',
+              width: '90%',
+              padding: '24px',
+              backgroundColor: '#ffffff',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  backgroundColor: '#fee2e2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                  Delete Diagram
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '20px' }}>
+              Are you sure you want to delete <strong style={{ color: 'var(--text-primary)' }}>"{deletingDiagram.name}"</strong>? All versions, image files, and AI review history will be permanently deleted.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setDeletingDiagram(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                style={{
+                  minWidth: '120px',
+                  backgroundColor: '#dc2626',
+                  borderColor: '#dc2626',
+                  color: '#ffffff',
+                  gap: '6px',
+                }}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={15} />
+                    <span>Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

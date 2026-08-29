@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { authService } from '../services/authService';
@@ -7,6 +7,7 @@ import { workspaceService } from '../services/workspaceService';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import WorkspaceGrid from '../components/dashboard/WorkspaceGrid';
 import CreateWorkspaceModal from '../components/dashboard/CreateWorkspaceModal';
+import Pagination from '../components/common/Pagination';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -15,13 +16,19 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Pagination states
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
-  // 1. Fetch workspaces
-  const fetchWorkspaces = async () => {
+  // 1. Fetch workspaces with pagination
+  const fetchWorkspaces = useCallback(async (page = pageIndex, size = pageSize) => {
     const currentUserId = authService.getUserId();
     if (!currentUserId) {
       setError('Please log in to view your workspaces.');
@@ -34,18 +41,28 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
 
-      const response = await workspaceService.getUserWorkspaces(currentUserId, 1, 30);
+      const response = await workspaceService.getUserWorkspaces(currentUserId, page, size);
 
       if (response && response.success && response.data) {
-        const items = response.data.items || response.data;
+        const data = response.data;
+        const items = data.items || data;
         setWorkspaces(Array.isArray(items) ? items : []);
+        setTotalCount(data.totalCount ?? (Array.isArray(items) ? items.length : 0));
+        setTotalPages(data.totalPages ?? Math.max(1, Math.ceil((data.totalCount || items.length || 0) / size)));
       } else if (response && response.data) {
-        const items = response.data.items || response.data;
+        const data = response.data;
+        const items = data.items || data;
         setWorkspaces(Array.isArray(items) ? items : []);
+        setTotalCount(data.totalCount ?? (Array.isArray(items) ? items.length : 0));
+        setTotalPages(data.totalPages ?? Math.max(1, Math.ceil((data.totalCount || items.length || 0) / size)));
       } else if (Array.isArray(response)) {
         setWorkspaces(response);
+        setTotalCount(response.length);
+        setTotalPages(Math.max(1, Math.ceil(response.length / size)));
       } else {
         setWorkspaces([]);
+        setTotalCount(0);
+        setTotalPages(1);
       }
     } catch (err) {
       console.error('API Workspaces error:', err);
@@ -54,11 +71,20 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pageIndex, pageSize]);
 
   useEffect(() => {
-    fetchWorkspaces();
-  }, []);
+    fetchWorkspaces(pageIndex, pageSize);
+  }, [pageIndex, pageSize, fetchWorkspaces]);
+
+  const handlePageChange = (newPage) => {
+    setPageIndex(newPage);
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setPageIndex(1);
+  };
 
   // 2. Create workspace
   const handleCreateWorkspace = async (name, onSuccess) => {
@@ -80,7 +106,8 @@ export default function DashboardPage() {
       if (res && (res.success || res.data)) {
         onSuccess?.();
         setIsModalOpen(false);
-        await fetchWorkspaces();
+        setPageIndex(1);
+        await fetchWorkspaces(1, pageSize);
       } else {
         setCreateError(res?.message || 'Failed to create workspace.');
       }
@@ -93,7 +120,7 @@ export default function DashboardPage() {
 
   const [sortBy, setSortBy] = useState('newest');
 
-  // Sort workspaces
+  // Sort workspaces on current page
   const sortedWorkspaces = [...workspaces].sort((a, b) => {
     if (sortBy === 'newest') {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -114,10 +141,10 @@ export default function DashboardPage() {
     <div style={{ padding: '32px 28px' }}>
       {/* 1. Header Toolbar */}
       <DashboardHeader
-        totalCount={workspaces.length}
+        totalCount={totalCount || workspaces.length}
         sortBy={sortBy}
         onSortChange={setSortBy}
-        onRefresh={fetchWorkspaces}
+        onRefresh={() => fetchWorkspaces(pageIndex, pageSize)}
         loading={loading}
         onOpenCreateModal={() => {
           setCreateError('');
@@ -158,7 +185,7 @@ export default function DashboardPage() {
             <AlertCircle size={18} />
             <span>{error}</span>
           </div>
-          <button className="btn btn-secondary btn-sm" onClick={fetchWorkspaces}>
+          <button className="btn btn-secondary btn-sm" onClick={() => fetchWorkspaces(pageIndex, pageSize)}>
             Retry
           </button>
         </div>
@@ -166,11 +193,27 @@ export default function DashboardPage() {
 
       {/* 4. Workspace Grid or Empty State */}
       {!loading && (
-        <WorkspaceGrid
-          workspaces={sortedWorkspaces}
-          onOpenCreateModal={() => setIsModalOpen(true)}
-          onSelectWorkspace={(id) => navigate(`/workspace/${id}`)}
-        />
+        <>
+          <WorkspaceGrid
+            workspaces={sortedWorkspaces}
+            onOpenCreateModal={() => setIsModalOpen(true)}
+            onSelectWorkspace={(id) => navigate(`/workspace/${id}`)}
+          />
+
+          {/* Pagination */}
+          {totalCount > 0 && (
+            <Pagination
+              currentPage={pageIndex}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[4, 8, 12, 24]}
+              itemLabel="workspaces"
+            />
+          )}
+        </>
       )}
 
       {/* 5. Create Workspace Modal */}

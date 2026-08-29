@@ -19,6 +19,7 @@ export default function UploadDiagramModal({
 }) {
   const [name, setName] = useState('');
   const [diagramType, setDiagramType] = useState('Architecture');
+  const [customType, setCustomType] = useState('');
   const [description, setDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -49,15 +50,21 @@ export default function UploadDiagramModal({
       setValidationError('Please enter diagram name.');
       return;
     }
+    if (diagramType === 'Other' && !customType.trim()) {
+      setValidationError('Please enter the custom diagram type.');
+      return;
+    }
     if (!selectedFile) {
       setValidationError('Please select a diagram file to upload.');
       return;
     }
 
+    const finalDiagramType = diagramType === 'Other' ? customType.trim() : diagramType;
+
     setValidationError('');
     onSubmit({
       name: name.trim(),
-      diagramType,
+      diagramType: finalDiagramType,
       description: description.trim(),
       imageFile: selectedFile,
     });
@@ -146,24 +153,43 @@ export default function UploadDiagramModal({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <label className="form-label" style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>
-                Diagram Type <span style={{ color: 'var(--color-danger)' }}>*</span>
-              </label>
-              <select
-                className="input-text"
-                value={diagramType}
-                onChange={(e) => setDiagramType(e.target.value)}
-                disabled={loading}
-                style={{ cursor: 'pointer' }}
-              >
-                {DIAGRAM_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+          <div style={{ display: 'grid', gridTemplateColumns: diagramType === 'Other' ? '1fr' : '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: diagramType === 'Other' ? '1fr 1fr' : '1fr', gap: '14px' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>
+                  Diagram Type <span style={{ color: 'var(--color-danger)' }}>*</span>
+                </label>
+                <select
+                  className="input-text"
+                  value={diagramType}
+                  onChange={(e) => setDiagramType(e.target.value)}
+                  disabled={loading}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {DIAGRAM_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {diagramType === 'Other' && (
+                <div>
+                  <label className="form-label" style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', display: 'block' }}>
+                    Custom Diagram Type <span style={{ color: 'var(--color-danger)' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="input-text"
+                    placeholder="e.g. C4 Model, Network Topology..."
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+              )}
             </div>
 
             <div>
